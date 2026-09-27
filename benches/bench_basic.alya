@@ -29,6 +29,25 @@ function main()
     end
     bench_stop(runner, "bi_mul() 112-bit 2000 ops")
 
+    # Bench 3: Eratosthenes sieve to 20000
+    bench_start(runner, 20)
+    let k = 0
+    while k < 20
+        math::sieve(20000)
+        k += 1
+    end
+    bench_stop(runner, "sieve() 20000 20 runs")
+
+    # Bench 4: 10x10 matrix product
+    let mm = math::mat(10, 10)
+    bench_start(runner, 100)
+    let q = 0
+    while q < 100
+        math::mat_mul(mm, mm)
+        q += 1
+    end
+    bench_stop(runner, "mat_mul() 10x10 100 ops")
+
     bench_summary(runner)
 end
 

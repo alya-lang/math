@@ -1,0 +1,70 @@
+## # Complex Numbers (float domain)
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## Double-precision complex arithmetic with struct-method ergonomics.
+## For exact rational-complex work, pair `Rat` values manually.
+
+## Complex number with float parts.
+##
+## ### Fields
+## - `re`: Real part.
+## - `im`: Imaginary part.
+pub struct Complex
+    re: float,
+    im: float
+end
+
+## Constructs a complex number (`cx(1.0, -2.0)`).
+pub function cx(re: float, im: float) -> Complex
+    return Complex { re: re, im: im }
+end
+
+## Adds two complex numbers.
+pub function Complex.add(self: Complex, o: Complex) -> Complex
+    return Complex { re: self.re + o.re, im: self.im + o.im }
+end
+
+## Subtracts `o` from `self`.
+pub function Complex.sub(self: Complex, o: Complex) -> Complex
+    return Complex { re: self.re - o.re, im: self.im - o.im }
+end
+
+## Multiplies two complex numbers.
+pub function Complex.mul(self: Complex, o: Complex) -> Complex
+    return Complex {
+        re: self.re * o.re - self.im * o.im,
+        im: self.re * o.im + self.im * o.re
+    }
+end
+
+## Divides `self` by `o` (zero divisor throws).
+pub function Complex.div(self: Complex, o: Complex) -> Complex
+    let d = o.re * o.re + o.im * o.im
+    if d == 0.0
+        throw "complex division by zero"
+    end
+    return Complex {
+        re: (self.re * o.re + self.im * o.im) / d,
+        im: (self.im * o.re - self.re * o.im) / d
+    }
+end
+
+## Negates both parts.
+pub function Complex.neg(self: Complex) -> Complex
+    return Complex { re: 0.0 - self.re, im: 0.0 - self.im }
+end
+
+## Complex conjugate.
+pub function Complex.conj(self: Complex) -> Complex
+    return Complex { re: self.re, im: 0.0 - self.im }
+end
+
+## Magnitude `sqrt(re^2 + im^2)`.
+pub function Complex.abs(self: Complex) -> float
+    return native_sqrt(self.re * self.re + self.im * self.im)
+end
+
+## Phase angle in radians (`atan2` range).
+pub function Complex.arg(self: Complex) -> float
+    return native_atan2(self.im, self.re)
+end

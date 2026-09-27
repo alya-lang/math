@@ -1,0 +1,64 @@
+# Combinatorics tests (card-deck and textbook ground truth)
+import "std/test"
+import "../src/lib.alya" as math
+
+# Reconstructs an int from limbs (only for values below 2^63).
+function t_limbs_to_int(a) -> int
+    let acc = 0
+    let place = 1
+    let i = 0
+    while i < len(a)
+        acc += a[i] * place
+        place *= 1073741824
+        i += 1
+    end
+    return acc
+end
+
+function main()
+    test_suite("Combinatorics Tests")
+    let r = runner_new()
+
+    runner_assert_eq(r, math::fact_int(0), 1, "fact 0")
+    runner_assert_eq(r, math::fact_int(10), 3628800, "fact 10")
+    runner_assert_eq(r, math::fact_int(20), 2432902008176640000, "fact 20")
+
+    runner_assert_eq(r, math::npr(10, 3), 720, "npr 10,3")
+    runner_assert_eq(r, math::npr(5, 5), 120, "npr full")
+    runner_assert_eq(r, math::npr(5, 6), 0, "npr overdraw")
+
+    runner_assert_eq(r, math::ncr(52, 5), 2598960, "ncr poker hands")
+    runner_assert_eq(r, math::ncr(10, 0), 1, "ncr zero")
+    runner_assert_eq(r, math::ncr(10, 10), 1, "ncr full")
+    runner_assert_eq(r, math::ncr(10, 11), 0, "ncr overdraw")
+    runner_assert_eq(r, math::ncr(50, 25), 126410606437752, "ncr central 50")
+
+    runner_assert_eq(r, math::fib(0), 0, "fib 0")
+    runner_assert_eq(r, math::fib(1), 1, "fib 1")
+    runner_assert_eq(r, math::fib(10), 55, "fib 10")
+    runner_assert_eq(r, math::fib(50), 12586269025, "fib 50")
+    # F(92) literal would round above 2^53 (#49): cross-check bigint instead.
+    runner_assert_eq(r, t_limbs_to_int(math::fib_big(92)), math::fib(92), "fib 92")
+
+    runner_assert_eq(r, t_limbs_to_int(math::fact_big(20)), 2432902008176640000, "fact_big 20")
+    runner_assert_eq(r, t_limbs_to_int(math::ncr_big(50, 25)), 126410606437752, "ncr_big 50,25")
+
+    # Pascal identity on C(100,50) without closed form.
+    let c100 = math::ncr_big(100, 50)
+    let pascal = math::bi_add(math::ncr_big(99, 49), math::ncr_big(99, 50))
+    runner_assert_eq(r, math::bi_cmp(c100, pascal), 0, "ncr_big pascal 100")
+
+    # Cassini identity on F(100): F(99)*F(101) - F(100)^2 == 1.
+    let f99 = math::fib_big(99)
+    let f100 = math::fib_big(100)
+    let f101 = math::fib_big(101)
+    let cass = math::bi_sub(math::bi_mul(f99, f101), math::bi_mul(f100, f100))
+    runner_assert_eq(r, math::bi_cmp(cass, [1]), 0, "fib_big cassini 100")
+
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+main()

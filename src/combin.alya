@@ -1,0 +1,193 @@
+## # Combinatorics: Exact Counts, Small and Big
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## Factorials, permutations, combinations, and Fibonacci numbers. The `_int`
+## variants stay in the 64-bit domain (`20!` is the largest exact factorial);
+## the `_big` variants use `bigint` limbs and grow without bound.
+
+## Exact factorial in the int domain (`n <= 20`).
+##
+## ### Parameters
+## - `n`: Non-negative integer.
+##
+## ### Returns
+## `n!` (overflows past `20!`).
+pub function fact_int(n: int) -> int
+    if n < 0
+        throw "factorial of negative number"
+    end
+    let res = 1
+    let i = 2
+    while i <= n
+        res *= i
+        i += 1
+    end
+    return res
+end
+
+## Permutations `P(n, k) = n! / (n-k)!` in the int domain.
+##
+## ### Parameters
+## - `n`: Population size (non-negative).
+## - `k`: Selection size.
+##
+## ### Returns
+## Ordered-selection count (`0` when `k < 0` or `k > n`).
+pub function npr(n: int, k: int) -> int
+    if n < 0
+        throw "negative population"
+    end
+    if k < 0 or k > n
+        return 0
+    end
+    let res = 1
+    let i = 0
+    while i < k
+        res *= n - i
+        i += 1
+    end
+    return res
+end
+
+## Combinations `C(n, k)` in the int domain (exact stepwise division).
+##
+## ### Parameters
+## - `n`: Population size (non-negative).
+## - `k`: Selection size.
+##
+## ### Returns
+## Unordered-selection count (`0` when `k < 0` or `k > n`).
+pub function ncr(n: int, k: int) -> int
+    if n < 0
+        throw "negative population"
+    end
+    if k < 0 or k > n
+        return 0
+    end
+    let kk = k
+    if kk > n - kk
+        kk = n - kk
+    end
+    let res = 1
+    let i = 1
+    while i <= kk
+        res = res * (n - kk + i) / i
+        i += 1
+    end
+    return res
+end
+
+## Exact factorial as bigint limbs (no size limit).
+##
+## ### Parameters
+## - `n`: Non-negative integer.
+##
+## ### Returns
+## `n!` limb array.
+pub function fact_big(n: int) -> array
+    if n < 0
+        throw "factorial of negative number"
+    end
+    let res = [1]
+    let i = 2
+    while i <= n
+        res = bi_mul(res, [i])
+        i += 1
+    end
+    return res
+end
+
+## Exact `C(n, k)` as bigint limbs via the multiplicative formula.
+##
+## ### Parameters
+## - `n`: Population size (non-negative int).
+## - `k`: Selection size.
+##
+## ### Returns
+## Combination limb array (`[0]` when `k < 0` or `k > n`).
+pub function ncr_big(n: int, k: int) -> array
+    if n < 0
+        throw "negative population"
+    end
+    if k < 0 or k > n
+        return [0]
+    end
+    let kk = k
+    if kk > n - kk
+        kk = n - kk
+    end
+    let res = [1]
+    let i = 1
+    while i <= kk
+        res = bi_divmod(bi_mul(res, [n - kk + i]), [i])[0]
+        i += 1
+    end
+    return res
+end
+
+## Fibonacci via iterative fast doubling (int domain, `n <= 92` exact).
+##
+## ### Parameters
+## - `n`: Non-negative index.
+##
+## ### Returns
+## `F(n)` with `F(0) = 0`, `F(1) = 1`.
+pub function fib(n: int) -> int
+    if n < 0
+        throw "negative fibonacci index"
+    end
+    let a = 0
+    let b = 1
+    let bit = 1
+    while bit <= n
+        bit = bit_shl(bit, 1)
+    end
+    bit = bit_shr(bit, 1)
+    while bit != 0
+        let c = a * (2 * b - a)
+        let d = a * a + b * b
+        if bit_and(n, bit) != 0
+            a = d
+            b = c + d
+        else
+            a = c
+            b = d
+        end
+        bit = bit_shr(bit, 1)
+    end
+    return a
+end
+
+## Exact Fibonacci as bigint limbs (no size limit).
+##
+## ### Parameters
+## - `n`: Non-negative index.
+##
+## ### Returns
+## `F(n)` limb array.
+pub function fib_big(n: int) -> array
+    if n < 0
+        throw "negative fibonacci index"
+    end
+    let a = [0]
+    let b = [1]
+    let bit = 1
+    while bit <= n
+        bit = bit_shl(bit, 1)
+    end
+    bit = bit_shr(bit, 1)
+    while bit != 0
+        let two_b = bi_mul(b, [2])
+        let c = bi_mul(a, bi_sub(two_b, a))
+        let d = bi_add(bi_mul(a, a), bi_mul(b, b))
+        if bit_and(n, bit) != 0
+            a = d
+            b = bi_add(c, d)
+        else
+            a = c
+            b = d
+        end
+        bit = bit_shr(bit, 1)
+    end
+    return a
+end

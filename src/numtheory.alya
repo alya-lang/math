@@ -1,0 +1,219 @@
+## # Integer Number Theory (64-bit domain)
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## Exact integer square roots, extended GCD, overflow-safe modular
+## arithmetic, Euler totients, and trial-division factorization. Inputs are
+## non-negative unless noted; `0` moduli and negative roots throw.
+
+## Integer square root (floor of sqrt).
+##
+## Bit-by-bit binary method: overflow-free for the full int64 range.
+##
+## ### Parameters
+## - `n`: Non-negative integer.
+##
+## ### Returns
+## Largest `r` with `r*r <= n`.
+pub function isqrt(n: int) -> int
+    if n < 0
+        throw "isqrt of negative number"
+    end
+    let num = n
+    let res = 0
+    let bit = bit_shl(1, 62)
+    while bit > num
+        bit = bit_shr(bit, 2)
+    end
+    while bit != 0
+        if num >= res + bit
+            num = num - res - bit
+            res = bit_shr(res, 1) + bit
+        else
+            res = bit_shr(res, 1)
+        end
+        bit = bit_shr(bit, 2)
+    end
+    return res
+end
+
+## Extended Euclidean algorithm.
+##
+## ### Parameters
+## - `a`: First non-negative integer.
+## - `b`: Second non-negative integer.
+##
+## ### Returns
+## Map with `g` (gcd) and Bezout coefficients `x`, `y`
+## (`a*x + b*y == g`).
+pub function xgcd(a: int, b: int) -> map
+    let old_r = a
+    let r = b
+    let old_s = 1
+    let s = 0
+    let old_t = 0
+    let t = 1
+    while r != 0
+        let q = old_r / r
+        let tmp = r
+        r = old_r - q * r
+        old_r = tmp
+        tmp = s
+        s = old_s - q * s
+        old_s = tmp
+        tmp = t
+        t = old_t - q * t
+        old_t = tmp
+    end
+    return { "g": old_r, "x": old_s, "y": old_t }
+end
+
+## Overflow-safe modular multiplication (double-and-add).
+##
+## ### Parameters
+## - `a`: First factor (reduced mod `m` internally).
+## - `b`: Second factor (non-negative).
+## - `m`: Positive modulus.
+##
+## ### Returns
+## `(a*b) mod m` without 64-bit overflow.
+pub function mulmod(a: int, b: int, m: int) -> int
+    if m <= 0
+        throw "mulmod needs a positive modulus"
+    end
+    let x = a % m
+    if x < 0
+        x += m
+    end
+    let y = b
+    let res = 0
+    while y > 0
+        if bit_and(y, 1) != 0
+            res += x
+            if res >= m
+                res -= m
+            end
+        end
+        x += x
+        if x >= m
+            x -= m
+        end
+        y = bit_shr(y, 1)
+    end
+    return res
+end
+
+## Modular exponentiation for non-negative int exponents.
+##
+## ### Parameters
+## - `base`: Base integer.
+## - `exp`: Non-negative exponent.
+## - `m`: Positive modulus.
+##
+## ### Returns
+## `(base^exp) mod m` (`0` when `m == 1`).
+pub function powmod(base: int, exp: int, m: int) -> int
+    if m <= 0
+        throw "powmod needs a positive modulus"
+    end
+    if exp < 0
+        throw "negative exponent not supported"
+    end
+    let b = base % m
+    if b < 0
+        b += m
+    end
+    let res = 1 % m
+    let e = exp
+    while e > 0
+        if bit_and(e, 1) != 0
+            res = mulmod(res, b, m)
+        end
+        e = bit_shr(e, 1)
+        if e > 0
+            b = mulmod(b, b, m)
+        end
+    end
+    return res
+end
+
+## Modular multiplicative inverse.
+##
+## ### Parameters
+## - `a`: Value to invert.
+## - `m`: Positive modulus.
+##
+## ### Returns
+## `x` with `(a*x) mod m == 1`, or -1 when `gcd(a, m) != 1`.
+pub function modinv(a: int, m: int) -> int
+    if m <= 0
+        throw "modinv needs a positive modulus"
+    end
+    let e = xgcd(a, m)
+    if e["g"] != 1 and e["g"] != -1
+        return -1
+    end
+    let x = e["x"] % m
+    if x < 0
+        x += m
+    end
+    return x
+end
+
+## Trial-division factorization with multiplicity, ascending.
+##
+## ### Parameters
+## - `n`: Integer above 1.
+##
+## ### Returns
+## Prime factor array (e.g. `60 -> [2, 2, 3, 5]`).
+pub function factor(n: int) -> array
+    if n < 2
+        throw "factor needs an integer above 1"
+    end
+    let out = []
+    let rest = n
+    while rest % 2 == 0
+        out.push(2)
+        rest = rest / 2
+    end
+    let d = 3
+    while d * d <= rest
+        while rest % d == 0
+            out.push(d)
+            rest = rest / d
+        end
+        d += 2
+    end
+    if rest > 1
+        out.push(rest)
+    end
+    return out
+end
+
+## Euler totient: count of `1 <= k <= n` coprime to `n`.
+##
+## ### Parameters
+## - `n`: Integer above 0.
+##
+## ### Returns
+## `phi(n)` (`1` for `n == 1`).
+pub function totient(n: int) -> int
+    if n < 1
+        throw "totient needs a positive integer"
+    end
+    if n == 1
+        return 1
+    end
+    let result = n
+    let facs = factor(n)
+    let prev = 0
+    let i = 0
+    while i < len(facs)
+        if facs[i] != prev
+            prev = facs[i]
+            result = result / prev * (prev - 1)
+        end
+        i += 1
+    end
+    return result
+end

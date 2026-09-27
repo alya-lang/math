@@ -4,19 +4,28 @@
 import "../src/lib.alya" as math
 
 function main()
-    say "--- 1. Representation contract ---"
-    say "limb bits: " + str(math::limb_bits())
+    say "--- 1. Exact rationals ---"
+    let s = math::rat_add(math::rat_from_int(1, 2), math::rat_from_int(1, 3))
+    say "1/2 + 1/3 = " + math::rat_to_string(s)
 
-    say "--- 2. Add / sub roundtrip ---"
-    let a = math::bi_from_bytes([0, 48, 57])
-    let b = math::bi_from_bytes([255, 255, 255, 255])
-    say "cmp(a, b): " + str(math::bi_cmp(a, b))
-    say "sub/add inverse: " + str(math::bi_cmp(math::bi_add(math::bi_sub(b, a), a), b))
+    say "--- 2. Primes ---"
+    say "prime 16-bit: " + str(math::gen_prime(16))
+    say "next after 100: " + str(math::next_prime(100))
 
-    say "--- 3. Modular exponentiation ---"
-    let base = math::bi_from_bytes([7, 91, 205, 21])
-    let mod = math::bi_sub(math::bi_shl([1], 32, 0), math::bi_from_bytes([29, 163, 17]))
-    say "modexp limbs: " + str(len(math::bi_modexp_int(base, 65537, mod)))
+    say "--- 3. Combinatorics ---"
+    say "poker hands: " + str(math::ncr(52, 5))
+    say "fib(50): " + str(math::fib(50))
+
+    say "--- 4. Complex ---"
+    let z = math::cx(3.0, -4.0)
+    say "|3-4i| = " + str(z.abs())
+
+    say "--- 5. Matrices ---"
+    let a = math::mat(2, 2, [2, 3, 1, 2])
+    say "det: " + str(math::mat_det(a))
+    let sol = math::mat_solve(a, [8, 5])
+    let x0: float = sol["x"][0]
+    say "solve ok: " + str(sol["ok"]) + " x0=" + str(x0)
     say "Done!"
 end
 

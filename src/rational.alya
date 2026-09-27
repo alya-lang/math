@@ -1,0 +1,243 @@
+## # Exact Rational Arithmetic over Bigint Limbs
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## Fractions as sign + numerator/denominator limb arrays, always kept
+## reduced (`gcd` via `bi_gcd`) with a positive denominator. Zero is `0/1`.
+
+## Exact fraction with explicit sign.
+##
+## ### Fields
+## - `neg`: 1 when negative, 0 otherwise (zero is never negative).
+## - `num`: Numerator magnitude limbs.
+## - `den`: Denominator magnitude limbs (never zero).
+pub struct Rat
+    neg: int,
+    num: array,
+    den: array
+end
+
+## Converts a non-negative int into magnitude limbs.
+function _rat_limbs(v: int) -> array
+    if v < 0
+        throw "rational limbs need a non-negative int"
+    end
+    let out = []
+    let x = v
+    if x == 0
+        return [0]
+    end
+    while x > 0
+        out.push(bit_and(x, 1073741823))
+        x = bit_shr(x, 30)
+    end
+    return out
+end
+
+## Builds the reduced fraction `num/den` from signed magnitudes.
+function _rat_make(neg: int, num, den) -> Rat
+    if bi_is_zero(den) == 1
+        throw "rational denominator is zero"
+    end
+    if bi_is_zero(num) == 1
+        return Rat { neg: 0, num: [0], den: [1] }
+    end
+    let g = bi_gcd(num, den)
+    return Rat {
+        neg: neg,
+        num: bi_divmod(num, g)[0],
+        den: bi_divmod(den, g)[0]
+    }
+end
+
+## Constructs a rational from ints (`rat_from_int(6, 8) == 3/4`).
+##
+## ### Parameters
+## - `num`: Signed numerator.
+## - `den`: Non-zero denominator (sign normalized away).
+##
+## ### Returns
+## Reduced `Rat` value.
+pub function rat_from_int(num: int, den: int = 1) -> Rat
+    if den == 0
+        throw "rational denominator is zero"
+    end
+    let neg = 0
+    let n = num
+    let d = den
+    if n < 0
+        neg = 1
+        n = 0 - n
+    end
+    if d < 0
+        if neg == 1
+            neg = 0
+        else
+            neg = 1
+        end
+        d = 0 - d
+    end
+    return _rat_make(neg, _rat_limbs(n), _rat_limbs(d))
+end
+
+## Returns 1 for `0/1`, else 0.
+pub function rat_is_zero(r: Rat) -> int
+    return bi_is_zero(r.num)
+end
+
+## Returns 1 for `1/1` or `-1/1`, else 0.
+pub function rat_is_one(r: Rat) -> int
+    if bi_cmp(r.num, [1]) != 0 or bi_cmp(r.den, [1]) != 0
+        return 0
+    end
+    return 1
+end
+
+## Negates a rational.
+pub function rat_neg(r: Rat) -> Rat
+    if rat_is_zero(r) == 1
+        return r
+    end
+    let neg = 1
+    if r.neg == 1
+        neg = 0
+    end
+    return Rat { neg: neg, num: r.num, den: r.den }
+end
+
+## Inverts a rational (`0` throws).
+pub function rat_inv(r: Rat) -> Rat
+    if rat_is_zero(r) == 1
+        throw "rational division by zero"
+    end
+    return _rat_make(r.neg, r.den, r.num)
+end
+
+## Adds two rationals.
+pub function rat_add(a: Rat, b: Rat) -> Rat
+    let n = bi_add(bi_mul(a.num, b.den), bi_mul(b.num, a.den))
+    let d = bi_mul(a.den, b.den)
+    let neg = 0
+    if a.neg != b.neg
+        let left = bi_mul(a.num, b.den)
+        let right = bi_mul(b.num, a.den)
+        let c = bi_cmp(left, right)
+        if c == 0
+            return Rat { neg: 0, num: [0], den: [1] }
+        end
+        if c < 0
+            n = bi_sub(right, left)
+            neg = b.neg
+        else
+            n = bi_sub(left, right)
+            neg = a.neg
+        end
+    else
+        neg = a.neg
+    end
+    return _rat_make(neg, n, d)
+end
+
+## Subtracts `b` from `a`.
+pub function rat_sub(a: Rat, b: Rat) -> Rat
+    return rat_add(a, rat_neg(b))
+end
+
+## Multiplies two rationals.
+pub function rat_mul(a: Rat, b: Rat) -> Rat
+    let neg = 0
+    if a.neg != b.neg
+        neg = 1
+    end
+    return _rat_make(neg, bi_mul(a.num, b.num), bi_mul(a.den, b.den))
+end
+
+## Divides `a` by `b` (`0` throws).
+pub function rat_div(a: Rat, b: Rat) -> Rat
+    return rat_mul(a, rat_inv(b))
+end
+
+## Compares two rationals (-1, 0, 1).
+pub function rat_cmp(a: Rat, b: Rat) -> int
+    if a.neg != b.neg
+        if rat_is_zero(a) == 1 and rat_is_zero(b) == 1
+            return 0
+        end
+        if a.neg == 1
+            return -1
+        end
+        return 1
+    end
+    let c = bi_cmp(bi_mul(a.num, b.den), bi_mul(b.num, a.den))
+    if a.neg == 1
+        return 0 - c
+    end
+    return c
+end
+
+## Converts limbs to float by Horner accumulation (2^30 is exact).
+function _rat_to_float(a) -> float
+    let f = 0.0
+    let i = len(a) - 1
+    while i >= 0
+        f = f * 1073741824.0 + float(a[i])
+        i -= 1
+    end
+    return f
+end
+
+## Approximates a rational as float.
+pub function rat_to_float(r: Rat) -> float
+    let f = _rat_to_float(r.num) / _rat_to_float(r.den)
+    if r.neg == 1
+        return 0.0 - f
+    end
+    return f
+end
+
+## Renders magnitude limbs as an exact decimal string.
+function _rat_limbs_to_dec(a) -> string
+    if bi_is_zero(a) == 1
+        return "0"
+    end
+    let base = [1000000000]
+    let parts = []
+    let x = bi_trim(a)
+    while bi_is_zero(x) == 0
+        let qr = bi_divmod(x, base)
+        let chunk = 0
+        let place = 1
+        let limbs = qr[1]
+        let i = 0
+        while i < len(limbs)
+            chunk += limbs[i] * place
+            place *= 1073741824
+            i += 1
+        end
+        parts.push(chunk)
+        x = qr[0]
+    end
+    let s = str(parts[len(parts) - 1])
+    let i = len(parts) - 2
+    while i >= 0
+        let c = str(parts[i])
+        while len(c) < 9
+            c = "0" + c
+        end
+        s = s + c
+        i -= 1
+    end
+    return s
+end
+
+## Renders a rational (`"3/4"`, `"-2"`, `"0"`).
+pub function rat_to_string(r: Rat) -> string
+    let s = ""
+    if r.neg == 1
+        s = "-"
+    end
+    s = s + _rat_limbs_to_dec(r.num)
+    if bi_cmp(r.den, [1]) != 0
+        s = s + "/" + _rat_limbs_to_dec(r.den)
+    end
+    return s
+end

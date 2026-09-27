@@ -1,0 +1,66 @@
+# Complex tests (hand-computed identities)
+import "std/test"
+import "../src/lib.alya" as math
+
+# Approximate float equality within eps.
+function t_approx(a: float, b: float, eps: float) -> int
+    let d = a - b
+    if d < 0.0
+        d = 0.0 - d
+    end
+    if d <= eps
+        return 1
+    end
+    return 0
+end
+
+function main()
+    test_suite("Complex Tests")
+    let r = runner_new()
+
+    let a = math::cx(1.0, 2.0)
+    let b = math::cx(3.0, -4.0)
+
+    let s = a.add(b)
+    runner_assert_eq(r, t_approx(s.re, 4.0, 0.000001), 1, "add re")
+    runner_assert_eq(r, t_approx(s.im, -2.0, 0.000001), 1, "add im")
+
+    let d = a.sub(b)
+    runner_assert_eq(r, t_approx(d.re, -2.0, 0.000001), 1, "sub re")
+    runner_assert_eq(r, t_approx(d.im, 6.0, 0.000001), 1, "sub im")
+
+    # (1+2i)(3-4i) = 11+2i.
+    let m = a.mul(b)
+    runner_assert_eq(r, t_approx(m.re, 11.0, 0.000001), 1, "mul re")
+    runner_assert_eq(r, t_approx(m.im, 2.0, 0.000001), 1, "mul im")
+
+    # (1+2i)/(3-4i) = -0.2+0.4i.
+    let q = a.div(b)
+    runner_assert_eq(r, t_approx(q.re, -0.2, 0.000001), 1, "div re")
+    runner_assert_eq(r, t_approx(q.im, 0.4, 0.000001), 1, "div im")
+
+    let n = a.neg()
+    runner_assert_eq(r, t_approx(n.re, -1.0, 0.000001), 1, "neg re")
+    runner_assert_eq(r, t_approx(n.im, -2.0, 0.000001), 1, "neg im")
+
+    let c = a.conj()
+    runner_assert_eq(r, t_approx(c.re, 1.0, 0.000001), 1, "conj re")
+    runner_assert_eq(r, t_approx(c.im, -2.0, 0.000001), 1, "conj im")
+
+    # |3-4i| = 5, arg(1+0i) = 0, arg(0+1i) = pi/2.
+    runner_assert_eq(r, t_approx(b.abs(), 5.0, 0.000001), 1, "abs")
+    runner_assert_eq(r, t_approx(math::cx(1.0, 0.0).arg(), 0.0, 0.000001), 1, "arg real")
+    runner_assert_eq(r, t_approx(math::cx(0.0, 1.0).arg(), 1.5707963, 0.0001), 1, "arg imag")
+
+    # Roundtrip: (a/b)*b == a.
+    let back = q.mul(b)
+    runner_assert_eq(r, t_approx(back.re, 1.0, 0.000001), 1, "roundtrip re")
+    runner_assert_eq(r, t_approx(back.im, 2.0, 0.000001), 1, "roundtrip im")
+
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+main()

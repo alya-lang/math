@@ -15,6 +15,12 @@
 ## ```
 
 import "./bigint.alya"
+import "./numtheory.alya"
+import "./primes.alya"
+import "./combin.alya"
+import "./rational.alya"
+import "./complex.alya"
+import "./matrix.alya"
 
 ## Limb width in bits for the `bi_*` representation contract.
 ##

@@ -1,0 +1,440 @@
+## # Dense Matrices (float domain)
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## Row-major float matrices with arithmetic, transpose, determinant
+## (partial-pivot elimination), inverse, and linear solves (Gauss-Jordan).
+## Dimensions mismatch and non-square inputs throw.
+
+## Row-major float matrix (`data` has `rows*cols` entries).
+##
+## ### Fields
+## - `rows`: Row count.
+## - `cols`: Column count.
+## - `data`: Row-major entries (`m.data[r * m.cols + c]`).
+pub struct Matrix
+    rows: int,
+    cols: int,
+    data: array
+end
+
+## Builds a matrix from int entries, zero-filled when `data` is null.
+##
+## Int entries convert exactly. For float entries use `mat_f`
+## (mixed int/float reads cannot convert safely, see `_mat_build`).
+##
+## ### Parameters
+## - `rows`: Row count (above 0).
+## - `cols`: Column count (above 0).
+## - `data`: `rows*cols` ints, or null for zeros.
+##
+## ### Returns
+## New `Matrix` (entry array is copied).
+pub function mat(rows: int, cols: int, data = null) -> Matrix
+    return _mat_build(rows, cols, data, 0)
+end
+
+## Builds a matrix from float entries.
+##
+## ### Parameters
+## - `rows`: Row count (above 0).
+## - `cols`: Column count (above 0).
+## - `data`: `rows*cols` floats.
+##
+## ### Returns
+## New `Matrix` (entry array is copied).
+pub function mat_f(rows: int, cols: int, data) -> Matrix
+    return _mat_build(rows, cols, data, 1)
+end
+
+## Shared ingestion kernel (`is_float`: 1 reinterprets slots as float,
+## 0 converts int slots via `float()`; the two paths cannot mix because
+## untyped array reads carry no element-type tag).
+function _mat_build(rows: int, cols: int, data, is_float: int) -> Matrix
+    if rows <= 0 or cols <= 0
+        throw "matrix dimensions must be positive"
+    end
+    let d = []
+    if data is null
+        let i = 0
+        while i < rows * cols
+            d.push(0.0)
+            i += 1
+        end
+    else
+        if len(data) != rows * cols
+            throw "matrix data length mismatch"
+        end
+        let i = 0
+        while i < len(data)
+            if is_float == 1
+                d.push(_mat_at(data, i))
+            else
+                d.push(float(data[i]))
+            end
+            i += 1
+        end
+    end
+    return Matrix { rows: rows, cols: cols, data: d }
+end
+
+## Zero matrix.
+pub function mat_zeros(rows: int, cols: int) -> Matrix
+    return mat(rows, cols)
+end
+
+## Identity matrix (square).
+pub function mat_identity(n: int) -> Matrix
+    let m = mat(n, n)
+    let i = 0
+    while i < n
+        m.data[i * n + i] = 1.0
+        i += 1
+    end
+    return m
+end
+
+## Deep copy (isolates backing storage).
+pub function mat_copy(m: Matrix) -> Matrix
+    let d = []
+    let i = 0
+    while i < len(m.data)
+        d.push(_mat_at(m.data, i))
+        i += 1
+    end
+    return Matrix { rows: m.rows, cols: m.cols, data: d }
+end
+
+## Reads entry `(r, c)`.
+pub function mat_get(m: Matrix, r: int, c: int) -> float
+    if r < 0 or r >= m.rows or c < 0 or c >= m.cols
+        throw "matrix index out of range"
+    end
+    return _mat_at(m.data, r * m.cols + c)
+end
+
+## Writes entry `(r, c)` in place.
+pub function mat_set(m: Matrix, r: int, c: int, v: float)
+    if r < 0 or r >= m.rows or c < 0 or c >= m.cols
+        throw "matrix index out of range"
+    end
+    m.data[r * m.cols + c] = v
+end
+
+## Requires identical dimensions (throws otherwise).
+function _mat_same(a: Matrix, b: Matrix)
+    if a.rows != b.rows or a.cols != b.cols
+        throw "matrix dimension mismatch"
+    end
+end
+
+## Element-wise addition.
+pub function mat_add(a: Matrix, b: Matrix) -> Matrix
+    _mat_same(a, b)
+    let d = []
+    let i = 0
+    while i < len(a.data)
+        d.push(_mat_at(a.data, i) + _mat_at(b.data, i))
+        i += 1
+    end
+    return Matrix { rows: a.rows, cols: a.cols, data: d }
+end
+
+## Element-wise subtraction.
+pub function mat_sub(a: Matrix, b: Matrix) -> Matrix
+    _mat_same(a, b)
+    let d = []
+    let i = 0
+    while i < len(a.data)
+        d.push(_mat_at(a.data, i) - _mat_at(b.data, i))
+        i += 1
+    end
+    return Matrix { rows: a.rows, cols: a.cols, data: d }
+end
+
+## Scalar multiplication.
+pub function mat_scale(m: Matrix, s: float) -> Matrix
+    let d = []
+    let i = 0
+    while i < len(m.data)
+        d.push(_mat_at(m.data, i) * s)
+        i += 1
+    end
+    return Matrix { rows: m.rows, cols: m.cols, data: d }
+end
+
+## Matrix product (`a.cols` must equal `b.rows`).
+pub function mat_mul(a: Matrix, b: Matrix) -> Matrix
+    if a.cols != b.rows
+        throw "matrix inner dimensions mismatch"
+    end
+    let d = []
+    let r = 0
+    while r < a.rows
+        let c = 0
+        while c < b.cols
+            let s = 0.0
+            let k = 0
+            while k < a.cols
+                s += _mat_at(a.data, r * a.cols + k) * _mat_at(b.data, k * b.cols + c)
+                k += 1
+            end
+            d.push(s)
+            c += 1
+        end
+        r += 1
+    end
+    return Matrix { rows: a.rows, cols: b.cols, data: d }
+end
+
+## Transpose.
+pub function mat_transpose(m: Matrix) -> Matrix
+    let d = []
+    let c = 0
+    while c < m.cols
+        let r = 0
+        while r < m.rows
+            d.push(_mat_at(m.data, r * m.cols + c))
+            r += 1
+        end
+        c += 1
+    end
+    return Matrix { rows: m.cols, cols: m.rows, data: d }
+end
+
+## Reads a float entry from a flat buffer (typed read path).
+function _mat_at(w, idx: int) -> float
+    return w[idx]
+end
+
+## Swaps two rows of a flat row-major buffer.
+function _mat_swap_rows(w, cols: int, r1: int, r2: int)
+    let c = 0
+    while c < cols
+        let t = _mat_at(w, r1 * cols + c)
+        w[r1 * cols + c] = _mat_at(w, r2 * cols + c)
+        w[r2 * cols + c] = t
+        c += 1
+    end
+end
+
+## Absolute value for floats.
+function _mat_absf(x: float) -> float
+    if x < 0.0
+        return 0.0 - x
+    end
+    return x
+end
+
+## Determinant via elimination with partial pivoting (square only).
+##
+## ### Returns
+## Determinant (`0.0` for singular inputs).
+pub function mat_det(m: Matrix) -> float
+    if m.rows != m.cols
+        throw "determinant needs a square matrix"
+    end
+    let n = m.rows
+    let mc = mat_copy(m)
+    let w = mc.data
+    let det = 1.0
+    let i = 0
+    while i < n
+        let piv = i
+        let k = i + 1
+        while k < n
+            if _mat_absf(_mat_at(w, k * n + i)) > _mat_absf(_mat_at(w, piv * n + i))
+                piv = k
+            end
+            k += 1
+        end
+        if piv != i
+            _mat_swap_rows(w, n, i, piv)
+            det = 0.0 - det
+        end
+        let p = _mat_at(w, i * n + i)
+        if _mat_absf(p) < 0.000000000001
+            return 0.0
+        end
+        det *= p
+        let r = i + 1
+        while r < n
+            let f = _mat_at(w, r * n + i) / p
+            let c = i
+            while c < n
+                w[r * n + c] = _mat_at(w, r * n + c) - f * _mat_at(w, i * n + c)
+                c += 1
+            end
+            r += 1
+        end
+        i += 1
+    end
+    return det
+end
+
+## Inverse via Gauss-Jordan on `[A|I]` (square only).
+##
+## ### Returns
+## Map with `ok` (1/0) and `inv` (`Matrix` or null when singular).
+pub function mat_inv(m: Matrix) -> map
+    let fail = { "ok": 0, "inv": null }
+    if m.rows != m.cols
+        throw "inverse needs a square matrix"
+    end
+    let n = m.rows
+    let w = []
+    let r = 0
+    while r < n
+        let c = 0
+        while c < n
+            w.push(_mat_at(m.data, r * n + c))
+            c += 1
+        end
+        c = 0
+        while c < n
+            if c == r
+                w.push(1.0)
+            else
+                w.push(0.0)
+            end
+            c += 1
+        end
+        r += 1
+    end
+    let cols = 2 * n
+    let i = 0
+    while i < n
+        let piv = i
+        let k = i + 1
+        while k < n
+            if _mat_absf(_mat_at(w, k * cols + i)) > _mat_absf(_mat_at(w, piv * cols + i))
+                piv = k
+            end
+            k += 1
+        end
+        if piv != i
+            _mat_swap_rows(w, cols, i, piv)
+        end
+        let p = _mat_at(w, i * cols + i)
+        if _mat_absf(p) < 0.000000000001
+            return fail
+        end
+        let c = 0
+        while c < cols
+            w[i * cols + c] = _mat_at(w, i * cols + c) / p
+            c += 1
+        end
+        r = 0
+        while r < n
+            if r != i
+                let f = _mat_at(w, r * cols + i)
+                c = 0
+                while c < cols
+                    w[r * cols + c] = _mat_at(w, r * cols + c) - f * _mat_at(w, i * cols + c)
+                    c += 1
+                end
+            end
+            r += 1
+        end
+        i += 1
+    end
+    let d = []
+    r = 0
+    while r < n
+        let c = 0
+        while c < n
+            d.push(w[r * cols + n + c])
+            c += 1
+        end
+        r += 1
+    end
+    return { "ok": 1, "inv": Matrix { rows: n, cols: n, data: d } }
+end
+
+## Solves `A*x = b` via Gauss-Jordan (square `A`, int `b` of length `n`).
+##
+## For float right-hand sides use `mat_solve_f`.
+##
+## ### Returns
+## Map with `ok` (1/0) and `x` (solution array or null when singular).
+pub function mat_solve(a: Matrix, b) -> map
+    return _mat_solve_kernel(a, b, 0)
+end
+
+## Solves `A*x = b` via Gauss-Jordan (square `A`, float `b` of length `n`).
+##
+## ### Returns
+## Map with `ok` (1/0) and `x` (solution array or null when singular).
+pub function mat_solve_f(a: Matrix, b) -> map
+    return _mat_solve_kernel(a, b, 1)
+end
+
+## Shared solve kernel (`is_float` selects the rhs read path, see `_mat_build`).
+function _mat_solve_kernel(a: Matrix, b, is_float: int) -> map
+    let fail = { "ok": 0, "x": null }
+    if a.rows != a.cols
+        throw "solve needs a square matrix"
+    end
+    let n = a.rows
+    if len(b) != n
+        throw "right-hand side length mismatch"
+    end
+    let w = []
+    let r = 0
+    while r < n
+        let c = 0
+        while c < n
+            w.push(_mat_at(a.data, r * n + c))
+            c += 1
+        end
+        if is_float == 1
+            w.push(_mat_at(b, r))
+        else
+            w.push(float(b[r]))
+        end
+        r += 1
+    end
+    let cols = n + 1
+    let i = 0
+    while i < n
+        let piv = i
+        let k = i + 1
+        while k < n
+            if _mat_absf(_mat_at(w, k * cols + i)) > _mat_absf(_mat_at(w, piv * cols + i))
+                piv = k
+            end
+            k += 1
+        end
+        if piv != i
+            _mat_swap_rows(w, cols, i, piv)
+        end
+        let p = _mat_at(w, i * cols + i)
+        if _mat_absf(p) < 0.000000000001
+            return fail
+        end
+        let c = 0
+        while c < cols
+            w[i * cols + c] = _mat_at(w, i * cols + c) / p
+            c += 1
+        end
+        r = 0
+        while r < n
+            if r != i
+                let f = _mat_at(w, r * cols + i)
+                c = 0
+                while c < cols
+                    w[r * cols + c] = _mat_at(w, r * cols + c) - f * _mat_at(w, i * cols + c)
+                    c += 1
+                end
+            end
+            r += 1
+        end
+        i += 1
+    end
+    let x = []
+    r = 0
+    while r < n
+        x.push(_mat_at(w, r * cols + n))
+        r += 1
+    end
+    return { "ok": 1, "x": x }
+end

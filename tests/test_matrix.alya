@@ -1,0 +1,91 @@
+# Matrix tests (textbook ground truth)
+import "std/test"
+import "../src/lib.alya" as math
+
+function t_approx(a: float, b: float, eps: float) -> int
+    let d = a - b
+    if d < 0.0
+        d = 0.0 - d
+    end
+    if d <= eps
+        return 1
+    end
+    return 0
+end
+
+function t_mat_approx(a, b, eps: float) -> int
+    if a.rows != b.rows or a.cols != b.cols
+        return 0
+    end
+    let i = 0
+    while i < len(a.data)
+        let x: float = a.data[i]
+        let y: float = b.data[i]
+        if t_approx(x, y, eps) == 0
+            return 0
+        end
+        i += 1
+    end
+    return 1
+end
+
+function main()
+    test_suite("Matrix Tests")
+    let r = runner_new()
+
+    let a = math::mat(2, 2, [1, 2, 3, 4])
+    runner_assert_eq(r, t_approx(math::mat_get(a, 1, 0), 3.0, 0.000001), 1, "get")
+    math::mat_set(a, 0, 0, 9.0)
+    runner_assert_eq(r, t_approx(math::mat_get(a, 0, 0), 9.0, 0.000001), 1, "set")
+    math::mat_set(a, 0, 0, 1.0)
+
+    let p = math::mat_mul(math::mat(2, 2, [1, 2, 3, 4]), math::mat(2, 2, [5, 6, 7, 8]))
+    runner_assert_eq(r, t_mat_approx(p, math::mat(2, 2, [19, 22, 43, 50]), 0.000001), 1, "mul")
+
+    let t = math::mat_transpose(math::mat(2, 3, [1, 2, 3, 4, 5, 6]))
+    runner_assert_eq(r, t_mat_approx(t, math::mat(3, 2, [1, 4, 2, 5, 3, 6]), 0.000001), 1, "transpose")
+
+    let s = math::mat_add(math::mat_identity(2), math::mat_scale(math::mat_identity(2), 2.0))
+    runner_assert_eq(r, t_mat_approx(s, math::mat(2, 2, [3, 0, 0, 3]), 0.000001), 1, "add+scale")
+
+    runner_assert_eq(r, t_approx(math::mat_det(math::mat(2, 2, [1, 2, 3, 4])), -2.0, 0.000001), 1, "det 2x2")
+    runner_assert_eq(r, t_approx(math::mat_det(math::mat(3, 3, [6, 1, 1, 4, -2, 5, 2, 8, 7])), -306.0, 0.000001), 1, "det 3x3")
+    runner_assert_eq(r, t_approx(math::mat_det(math::mat(2, 2, [1, 2, 2, 4])), 0.0, 0.000001), 1, "det singular")
+
+    let inv = math::mat_inv(math::mat(2, 2, [4, 7, 2, 6]))
+    runner_assert_eq(r, inv["ok"], 1, "inv ok")
+    runner_assert_eq(r, t_mat_approx(inv["inv"], math::mat_f(2, 2, [0.6, -0.7, -0.2, 0.4]), 0.000001), 1, "inv 2x2")
+
+    let b3 = math::mat(3, 3, [6, 1, 1, 4, -2, 5, 2, 8, 7])
+    let inv3 = math::mat_inv(b3)
+    runner_assert_eq(r, inv3["ok"], 1, "inv3 ok")
+    let eye = math::mat_mul(b3, inv3["inv"])
+    runner_assert_eq(r, t_mat_approx(eye, math::mat_identity(3), 0.0001), 1, "inv3 roundtrip")
+
+    let bad = math::mat_inv(math::mat(2, 2, [1, 2, 2, 4]))
+    runner_assert_eq(r, bad["ok"], 0, "inv singular")
+
+    let sol = math::mat_solve(math::mat(2, 2, [2, 3, 1, 2]), [8, 5])
+    runner_assert_eq(r, sol["ok"], 1, "solve ok")
+    let sx: float = sol["x"][0]
+    let sy: float = sol["x"][1]
+    runner_assert_eq(r, t_approx(sx, 1.0, 0.000001), 1, "solve x")
+    runner_assert_eq(r, t_approx(sy, 2.0, 0.000001), 1, "solve y")
+
+    let nosol = math::mat_solve(math::mat(2, 2, [1, 2, 2, 4]), [1, 2])
+    runner_assert_eq(r, nosol["ok"], 0, "solve singular")
+
+    let fmat = math::mat_f(2, 2, [0.5, 1.5, 2.5, 3.5])
+    runner_assert_eq(r, t_approx(math::mat_get(fmat, 1, 1), 3.5, 0.000001), 1, "mat_f entries")
+    let fsol = math::mat_solve_f(math::mat(2, 2, [2, 3, 1, 2]), [8.5, 5.0])
+    runner_assert_eq(r, fsol["ok"], 1, "solve_f ok")
+    let fx: float = fsol["x"][0]
+    runner_assert_eq(r, t_approx(fx, 2.0, 0.000001), 1, "solve_f x")
+
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+main()

@@ -429,3 +429,49 @@ pub function bi_to_bytes(a, out_len: int) -> array
     end
     return out
 end
+
+## Greatest common divisor via Euclid's algorithm.
+##
+## # Arguments
+## * `a` - First operand limbs.
+## * `b` - Second operand limbs.
+##
+## # Returns
+## GCD limb array (`[0]` only when both inputs are zero).
+pub function bi_gcd(a, b) -> array
+    let x = bi_trim(a)
+    let y = bi_trim(b)
+    while bi_is_zero(y) == 0
+        let r = bi_mod(x, y)
+        x = y
+        y = r
+    end
+    return x
+end
+
+## Raises limbs to a non-negative int power by binary exponentiation.
+##
+## # Arguments
+## * `base` - Base limbs.
+## * `exp` - Non-negative exponent (fits 64-bit).
+##
+## # Returns
+## `base^exp` limb array (`[1]` for exponent 0).
+pub function bi_pow_int(base, exp: int) -> array
+    if exp < 0
+        throw "negative exponent not supported"
+    end
+    let result = [1]
+    let b = bi_trim(base)
+    let e = exp
+    while e > 0
+        if bit_and(e, 1) != 0
+            result = bi_mul(result, b)
+        end
+        e = bit_shr(e, 1)
+        if e > 0
+            b = bi_mul(b, b)
+        end
+    end
+    return result
+end
