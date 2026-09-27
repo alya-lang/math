@@ -1,0 +1,32 @@
+[package]
+name = "math"
+version = "0.1.0"
+alya-version = "0.0.19"
+entry = "src/lib.alya"
+description = "Multi-precision integer arithmetic for Alya (30-bit limb big integers: add, sub, mul, divmod, modexp)"
+authors = ["Alya Language Contributors <https://github.com/alya-lang>"]
+license = "MIT"
+homepage = "https://github.com/alya-lang/alya"
+repository = "https://github.com/alya-lang/math"
+keywords = ["alya", "alya-lang", "package", "math", "bigint", "big-integer", "modexp", "modular-arithmetic"]
+
+[dependencies]
+
+# [build]
+# c-sources = ["c/source.c"]
+# c-flags = ["-O2"]
+# c-include-dirs = ["c"]
+# links = "math"
+
+# [lint]
+# disabled_rules = []
+# exclude = []
+
+# [fmt]
+# exclude = []
+
+# [test]
+# exclude = []
+
+# [bench]
+# exclude = []
