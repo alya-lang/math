@@ -227,14 +227,10 @@ pub function mat_frobenius(m: Matrix) -> float
     return native_sqrt(s)
 end
 
-## Reads a float entry from a flat buffer (typed read path).
-##
-## NOTE: the annotated binding is load-bearing, do NOT simplify to
-## `return w[idx]`: direct float returns of array elements miscompile on
-## ARM64 (denormal garbage), see alya-lang/alya#51.
+## Reads a float entry from a flat buffer (typed read path: untyped
+## reads of dynamic float arrays yield raw bits, see alya-lang/alya#50).
 function _mat_at(w, idx: int) -> float
-    let v: float = w[idx]
-    return v
+    return w[idx]
 end
 
 ## Swaps two rows of a flat row-major buffer.
