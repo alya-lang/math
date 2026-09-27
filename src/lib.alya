@@ -1,7 +1,7 @@
 ## # Alya Multi-Precision Integer Library
 ##
 ## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
-## Unsigned big integers as little-endian `limb_bits()`-wide limb arrays.
+## Unsigned big integers as little-endian `LIMB_BITS`-wide limb arrays.
 ## Powers RSA, ECDSA, and Diffie-Hellman in the `crypto` package.
 ##
 ## ```alya
@@ -25,12 +25,7 @@ import "./poly.alya"
 
 ## Limb width in bits for the `bi_*` representation contract.
 ##
-## Every limb holds a value below `2^limb_bits()`, little-endian first.
+## Every limb holds a value below `2^LIMB_BITS`, little-endian first.
 ## Products of two limbs stay below 2^60, so every intermediate is exact
 ## in 64-bit signed arithmetic.
-##
-## NOTE: exposed as a function because an aliased `pub let` miscompiles
-## (reads zero/garbage, see alya-lang/alya#48). Revisit when fixed.
-pub function limb_bits() -> int
-    return 30
-end
+pub let LIMB_BITS: int = 30

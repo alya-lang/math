@@ -123,7 +123,7 @@ main()
 | `bi_gcd(a, b)` | `a: list, b: list` | `list` | Greatest common divisor limbs. |
 | `bi_lcm(a, b)` | `a: list, b: list` | `list` | Least common multiple limbs. |
 | `bi_pow_int(b, e)` | `b: list, e: int` | `list` | `base^exp` limbs. |
-| `limb_bits()` | — | `int` | Limb width contract (`30`). |
+| `LIMB_BITS` | — | `int` | Limb width contract (`30`). |
 
 ### Rationals (`rat_*`, always reduced)
 

@@ -54,7 +54,7 @@ function main()
     test_suite("BigInt Tests")
     let r = runner_new()
 
-    runner_assert_eq(r, math::limb_bits(), 30, "limb width contract")
+    runner_assert_eq(r, math::LIMB_BITS, 30, "limb width contract")
     runner_assert_eq(r, math::bi_mask(), 1073741823, "limb mask")
     runner_assert_eq(r, t_arr_eq(math::bi_trim([1, 2, 0, 0]), [1, 2]), 1, "trim zeros")
     runner_assert_eq(r, t_arr_eq(math::bi_trim([0, 0]), [0]), 1, "trim to one")
