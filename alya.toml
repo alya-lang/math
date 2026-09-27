@@ -8,7 +8,7 @@ authors = ["Alya Language Contributors <https://github.com/alya-lang>"]
 license = "MIT"
 homepage = "https://github.com/alya-lang/alya"
 repository = "https://github.com/alya-lang/math"
-keywords = ["alya", "alya-lang", "package", "math", "bigint", "big-integer", "rational", "number-theory", "primes", "miller-rabin", "sieve", "combinatorics", "factorial", "fibonacci", "complex", "matrix", "modexp", "modular-arithmetic", "polynomials", "chinese-remainder", "rank", "bit-operations"]
+keywords = ["alya", "alya-lang", "package", "math", "bigint", "rational", "number-theory", "primes", "miller-rabin", "sieve", "combinatorics", "factorial", "fibonacci", "complex", "matrix", "modular-arithmetic", "polynomials", "chinese-remainder", "rank", "bit-operations"]
 
 [dependencies]
 
