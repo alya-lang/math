@@ -33,6 +33,7 @@ function main()
     runner_assert_eq(r, math::is_prime_mr(999983), 1, "mr medium prime")
     runner_assert_eq(r, math::is_prime_mr(999984), 0, "mr medium composite")
     runner_assert_eq(r, math::is_prime_mr(4503599627370449), 1, "mr 52-bit prime")
+    runner_assert_eq(r, math::is_prime_mr(2305843009213693951), 1, "mr mersenne 2^61-1")
     runner_assert_eq(r, math::is_prime_mr(9223372036854775807), 0, "mr 2^63-1 composite")
 
     runner_assert_eq(r, math::next_prime(1), 2, "next_prime one")
