@@ -23,7 +23,7 @@ exact and structural mathematics with zero dependencies.
 - 🌀 **Complex Numbers**: float complex arithmetic with struct-method ergonomics
 - 🧱 **Matrices**: arithmetic, transpose, determinant, inverse, and linear solves
 - ⚡ **Zero dependencies**: 100% pure Alya
-- 🧪 **Well Tested**: ground-truth vectors cross-checked with Python (142 assertions)
+- 🧪 **Well Tested**: ground-truth vectors cross-checked with Python (153 assertions)
 
 ---
 
@@ -144,8 +144,6 @@ main()
 | `mulmod(a, b, m)` | `a: int, b: int, m: int` | `int` | Overflow-safe `(a*b) mod m`. |
 | `powmod(b, e, m)` | `b: int, e: int, m: int` | `int` | `(base^exp) mod m`. |
 | `modinv(a, m)` | `a: int, m: int` | `int` | Modular inverse, or -1. |
-| `factor(n)` | `n: int` | `array` | Prime factors ascending. |
-| `totient(n)` | `n: int` | `int` | Euler `phi(n)`. |
 
 ### Primes
 
@@ -155,6 +153,8 @@ main()
 | `is_prime_mr(n)` | `n: int` | `int` | Deterministic Miller-Rabin (64-bit). |
 | `next_prime(n)` | `n: int` | `int` | Smallest prime `>= n`. |
 | `gen_prime(bits)` | `bits: int` | `int` | Random `bits`-bit prime (2..62). |
+| `factor(n)` | `n: int` | `array` | Prime factors ascending (Pollard Rho). |
+| `totient(n)` | `n: int` | `int` | Euler `phi(n)`. |
 
 ### Combinatorics
 
@@ -174,6 +174,7 @@ main()
 |---|---|
 | `cx(re, im)` | Constructor. |
 | `.add(o)` / `.sub(o)` / `.mul(o)` / `.div(o)` | Arithmetic (`div` by zero throws). |
+| `.pow(n)` | Integer power (negative inverts). |
 | `.neg()` / `.conj()` | Negation, conjugate. |
 | `.abs()` | Magnitude. |
 | `.arg()` | Phase in radians. |
@@ -189,6 +190,8 @@ main()
 | `mat_add(a, b)` / `mat_sub(a, b)` / `mat_scale(m, s)` | Element-wise ops. |
 | `mat_mul(a, b)` | Matrix product. |
 | `mat_transpose(m)` | Transpose. |
+| `mat_trace(m)` | Diagonal sum (square only). |
+| `mat_frobenius(m)` | `sqrt` of sum of squares. |
 | `mat_det(m)` | Determinant (`0.0` when singular). |
 | `mat_inv(m)` | `{ok, inv}` (Gauss-Jordan). |
 | `mat_solve(a, b)` / `mat_solve_f(a, b)` | `{ok, x}` for int/float right-hand sides. |

@@ -68,3 +68,30 @@ end
 pub function Complex.arg(self: Complex) -> float
     return native_atan2(self.im, self.re)
 end
+
+## Integer power by binary exponentiation (negative exponents invert).
+##
+## ### Parameters
+## - `o`: Exponent (any int; `0^0` yields `1+0i`, zero base with
+##   negative exponent throws via division).
+##
+## ### Returns
+## `self^o`.
+pub function Complex.pow(self: Complex, o: int) -> Complex
+    if o < 0
+        return cx(1.0, 0.0).div(self.pow(0 - o))
+    end
+    let result = cx(1.0, 0.0)
+    let b = self
+    let e = o
+    while e > 0
+        if bit_and(e, 1) != 0
+            result = result.mul(b)
+        end
+        e = bit_shr(e, 1)
+        if e > 0
+            b = b.mul(b)
+        end
+    end
+    return result
+end

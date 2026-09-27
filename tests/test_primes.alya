@@ -51,6 +51,12 @@ function main()
     runner_assert_eq(r, g60 < lo60 + lo60, 1, "gen_prime60 upper bound")
     runner_assert_eq(r, math::is_prime_mr(g60), 1, "gen_prime60 primality")
 
+    # 12-digit semiprime: needs Rho, not trial division.
+    runner_assert_eq(r, t_arr_eq(math::factor(1000036000099), [1000003, 1000033]), 1, "factor semiprime")
+    runner_assert_eq(r, t_arr_eq(math::factor(2 * 2 * 1000003), [2, 2, 1000003]), 1, "factor mixed")
+
+    runner_assert_eq(r, math::totient(1000036000099), 1000034000064, "totient semiprime")
+
     let failed = runner_summary(r)
     if failed > 0
         exit(1)

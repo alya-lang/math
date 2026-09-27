@@ -77,6 +77,8 @@ function main()
 
     let fmat = math::mat_f(2, 2, [0.5, 1.5, 2.5, 3.5])
     runner_assert_eq(r, t_approx(math::mat_get(fmat, 1, 1), 3.5, 0.000001), 1, "mat_f entries")
+    runner_assert_eq(r, t_approx(math::mat_trace(math::mat(3, 3, [6, 1, 1, 4, -2, 5, 2, 8, 7])), 11.0, 0.000001), 1, "trace")
+    runner_assert_eq(r, t_approx(math::mat_frobenius(math::mat(2, 2, [3, 4, 0, 0])), 5.0, 0.000001), 1, "frobenius")
     let fsol = math::mat_solve_f(math::mat(2, 2, [2, 3, 1, 2]), [8.5, 5.0])
     runner_assert_eq(r, fsol["ok"], 1, "solve_f ok")
     let fx: float = fsol["x"][0]

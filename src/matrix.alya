@@ -201,6 +201,32 @@ pub function mat_transpose(m: Matrix) -> Matrix
     return Matrix { rows: m.cols, cols: m.rows, data: d }
 end
 
+## Trace: sum of diagonal entries (square only).
+pub function mat_trace(m: Matrix) -> float
+    if m.rows != m.cols
+        throw "trace needs a square matrix"
+    end
+    let s = 0.0
+    let i = 0
+    while i < m.rows
+        s += _mat_at(m.data, i * m.cols + i)
+        i += 1
+    end
+    return s
+end
+
+## Frobenius norm `sqrt(sum of squares)`.
+pub function mat_frobenius(m: Matrix) -> float
+    let s = 0.0
+    let i = 0
+    while i < len(m.data)
+        let v = _mat_at(m.data, i)
+        s += v * v
+        i += 1
+    end
+    return native_sqrt(s)
+end
+
 ## Reads a float entry from a flat buffer (typed read path).
 function _mat_at(w, idx: int) -> float
     return w[idx]

@@ -57,6 +57,18 @@ function main()
     runner_assert_eq(r, t_approx(back.re, 1.0, 0.000001), 1, "roundtrip re")
     runner_assert_eq(r, t_approx(back.im, 2.0, 0.000001), 1, "roundtrip im")
 
+    # (1+i)^2 = 2i, (1+i)^4 = -4, 1/(2+0i) = 0.5.
+    let one = math::cx(1.0, 1.0)
+    let p2 = one.pow(2)
+    runner_assert_eq(r, t_approx(p2.re, 0.0, 0.000001), 1, "pow2 re")
+    runner_assert_eq(r, t_approx(p2.im, 2.0, 0.000001), 1, "pow2 im")
+    let p4 = one.pow(4)
+    runner_assert_eq(r, t_approx(p4.re, -4.0, 0.000001), 1, "pow4 re")
+    runner_assert_eq(r, t_approx(p4.im, 0.0, 0.000001), 1, "pow4 im")
+    let pinv = math::cx(2.0, 0.0).pow(-1)
+    runner_assert_eq(r, t_approx(pinv.re, 0.5, 0.000001), 1, "pow neg re")
+    runner_assert_eq(r, t_approx(pinv.im, 0.0, 0.000001), 1, "pow neg im")
+
     let failed = runner_summary(r)
     if failed > 0
         exit(1)

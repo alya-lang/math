@@ -169,3 +169,145 @@ pub function gen_prime(bits: int) -> int
     end
     throw "prime generation failed"
 end
+
+## Plain Euclidean GCD for non-negative ints (Rho helper).
+function _igcd(a: int, b: int) -> int
+    let x = a
+    let y = b
+    while y != 0
+        let t = x % y
+        x = y
+        y = t
+    end
+    return x
+end
+
+## Pollard Rho step polynomial `(x^2 + c) mod n` (overflow-safe).
+function _rho_step(x: int, c: int, n: int) -> int
+    let s = mulmod(x, x, n)
+    let rest = n - c
+    if s >= rest
+        return s - rest
+    end
+    return s + c
+end
+
+## Nonnegative random int below `n` from the system PRNG.
+function _rho_rand(n: int) -> int
+    let r = rand()
+    if r < 0
+        r = 0 - r
+    end
+    return r % n
+end
+
+## Finds a non-trivial factor of composite `n` (Floyd cycle + restarts).
+function _pollard_rho(n: int) -> int
+    if n % 2 == 0
+        return 2
+    end
+    let restarts = 0
+    while restarts < 32
+        let c = 1 + _rho_rand(n - 1)
+        let x = 2 + _rho_rand(n - 2)
+        let y = x
+        let d = 1
+        while d == 1
+            x = _rho_step(x, c, n)
+            y = _rho_step(_rho_step(y, c, n), c, n)
+            let diff = x - y
+            if diff < 0
+                diff = 0 - diff
+            end
+            d = _igcd(diff, n)
+        end
+        if d != n
+            return d
+        end
+        restarts += 1
+    end
+    throw "factorization failed"
+end
+
+## Recursive factorization driver (trial division, Miller-Rabin, Rho).
+function _factor_rec(n: int, out)
+    let rest = n
+    let small = _mr_small()
+    let i = 0
+    while i < len(small)
+        while rest % small[i] == 0
+            out.push(small[i])
+            rest = rest / small[i]
+        end
+        i += 1
+    end
+    if rest == 1
+        return
+    end
+    if is_prime_mr(rest) == 1
+        out.push(rest)
+        return
+    end
+    let d = _pollard_rho(rest)
+    _factor_rec(d, out)
+    _factor_rec(rest / d, out)
+end
+
+## Prime factorization with multiplicity, ascending.
+##
+## Trial division by small primes, Miller-Rabin primality gating, and
+## Pollard Rho for large composites: practical well past the trial
+## division range (e.g. 12-digit semiprimes).
+##
+## ### Parameters
+## - `n`: Integer above 1.
+##
+## ### Returns
+## Prime factor array (e.g. `60 -> [2, 2, 3, 5]`).
+pub function factor(n: int) -> array
+    if n < 2
+        throw "factor needs an integer above 1"
+    end
+    let out = []
+    _factor_rec(n, out)
+    let j = 1
+    while j < len(out)
+        let key = out[j]
+        let k = j - 1
+        while k >= 0 and out[k] > key
+            out[k + 1] = out[k]
+            k -= 1
+        end
+        out[k + 1] = key
+        j += 1
+    end
+    return out
+end
+
+## Euler totient: count of `1 <= k <= n` coprime to `n`.
+##
+## ### Parameters
+## - `n`: Integer above 0.
+##
+## ### Returns
+## `phi(n)` (`1` for `n == 1`).
+pub function totient(n: int) -> int
+    if n < 1
+        throw "totient needs a positive integer"
+    end
+    if n == 1
+        return 1
+    end
+    let result = n
+    let facs = factor(n)
+    let prev = 0
+    let i = 0
+    while i < len(facs)
+        if facs[i] != prev
+            prev = facs[i]
+            result = result / prev * (prev - 1)
+        end
+        i += 1
+    end
+    return result
+end
