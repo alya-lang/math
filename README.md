@@ -1,24 +1,19 @@
 # math
 
-[![CI](https://github.com/alya-lang/math/actions/workflows/ci.yml/badge.svg)](https://github.com/alya-lang/math/actions/workflows/ci.yml)
+[![CI](https://github.com/alya-lang/math/actions/workflows/ci.yml/badge.svg)](https://github.com/alya-lang/math)
 [![License](https://img.shields.io/github/license/alya-lang/math?color=blue&label=License)](LICENSE)
 [![Alya](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Falya-lang%2Fmath%2Fmain%2Falya.toml&query=%24.package.alya-version&label=Alya&color=orange&prefix=%3E%3D)](https://github.com/alya-lang/alya)
 [![Package Version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Falya-lang%2Fmath%2Fmain%2Falya.toml&query=%24.package.version&label=Version&color=brightgreen)](alya.toml)
 
-Multi-precision integer arithmetic for Alya (30-bit limb big integers: add, sub, mul, divmod, modexp)
+Multi-precision integer arithmetic for Alya (moved out of `crypto` v0.6.0).
 
 ---
 
 ## 🌟 Features
 
-- ⚡ **Lightweight & High Performance**: Minimal memory overhead, zero runtime bloat, and fast native execution
-- 🧩 **Modular Architecture**: Layered multi-module design featuring a clean public facade (`src/lib.alya`), rich data models (`src/types.alya`), and encapsulated core formatters (`src/core/formatter.alya`)
-- 🔒 **Public/Private Visibility (`pub`)**: Fine-grained export control with `pub` for public functions, structs, and enums, keeping internal helper functions private and encapsulated
-- 🎭 **Structural Duck Typing & Interfaces**: Dynamic interface dispatch (`Summarizable`, `Describable`) without brittle inheritance hierarchies
-- 📦 **Rich Domain Models & Enums**: Idiomatic `enum` types (`MathStatus`, `MathPriority`, `MathStyle`) and typed data containers (`MathConfig`, `MathResult`, `MathStats`)
-- 🎯 **Advanced Pattern Matching**: Clean branching with `when` expressions, range matching, and condition guards
-- 🛡️ **Defensive Result Pattern**: Structured error handling and outcome encapsulation with `ok_result` and `error_result`
-- 🧪 **Enterprise Test & Benchmark Suite**: 100% test coverage with standard assertions (`std/test`) and micro-benchmarking (`std/test` bench runner)
+- 🧮 **Big Integers**: 30-bit-limb add/sub/mul/divmod/modexp for RSA-scale operands
+- ⚡ **Zero dependencies**: 100% pure Alya, exact 64-bit signed intermediates
+- 🧪 **Well Tested**: ground-truth vectors cross-checked with Python
 
 ---
 
@@ -26,44 +21,31 @@ Multi-precision integer arithmetic for Alya (30-bit limb big integers: add, sub,
 
 ```
 math/
-├── .alyalint               # Linter configuration (rules, exclusions, severity overrides)
-├── .editorconfig           # Uniform formatting rules across IDEs and editors
-├── .gitignore              # Ecosystem standard ignore filters
-├── .vscode/                # VS Code workspace settings, DAP launch configurations & tasks
-├── alya.toml               # Package manifest with dependencies and optional [build]
-├── c/                      # (Optional) Native C sources for zero-dependency FFI packages
+├── alya.toml               # Package manifest (v0.1.0)
 ├── src/
-│   ├── lib.alya            # Public API facade (pub exports, re-exports & pipeline runners)
-│   ├── types.alya          # Data models, pub enums, pub structs, and struct methods
-│   ├── ffi.alya            # (Optional) Native extern "C" declarations
-│   └── core/               # Subdirectory module hierarchy
-│       └── formatter.alya  # Domain formatting routines, salutation builders & pattern matchers
-├── examples/
-│   └── demo.alya           # Comprehensive runnable walkthrough of all package capabilities
+│   ├── lib.alya            # Central public API export facade
+│   └── bigint.alya         # Multi-precision add/sub/mul/divmod/modexp
 ├── tests/
-│   └── test_basic.alya     # Automated test suite with 100% feature coverage
+│   └── test_basic.alya     # Ground-truth test suite
 └── benches/
-    └── bench_basic.alya    # Micro-benchmarks measuring performance and throughput
+    └── bench_basic.alya    # Micro-benchmarks
 ```
-
-> [!NOTE]
-> **Visibility & Modularity:** Symbols annotated with `pub` (`pub function`, `pub struct`, `pub enum`, `pub interface`) are exported to external consumers and re-exporting modules. Symbols without `pub` remain strictly internal to their declaring module, preventing symbol collisions and implementation leakage.
 
 ---
 
 ## 📦 Installation
 
-Add `math` to the `[dependencies]` section in your `alya.toml`:
+Add `math` to your `alya.toml`:
 
 ```toml
 [dependencies]
-math = { git = "https://github.com/alya-lang/math", branch = "main" }
+math = { git = "https://github.com/alya-lang/math", tag = "v0.1.0" }
 ```
 
-Or install it directly using the Alya package CLI:
+Or install it directly via CLI:
 
 ```bash
-alya add math --git https://github.com/alya-lang/math --branch main
+alya add math --git https://github.com/alya-lang/math --tag v0.1.0
 alya install
 ```
 
@@ -72,21 +54,13 @@ alya install
 ## 🚀 Quick Start
 
 ```alya
-import "math" as pkg
+import "math" as math
 
 function main()
-    # 1. Basic facade call with default parameter
-    let greeting = pkg::hello()
-    say f"Greeting:  {greeting}"
-
-    # 2. Struct configuration with priority, style, and methods
-    let cfg = pkg::new_config("Community", 5, pkg::MathPriority.High, pkg::MathStyle.Formal)
-    say f"Summary:   {cfg.summary()}"
-    say f"Formatted: {pkg::core_format_custom(cfg)}"
-
-    # 3. Processing pipeline returning Result model
-    let res = pkg::process("Analytics", 3, pkg::MathPriority.Critical)
-    say f"Outcome:   {res.message}"
+    let p = math::bi_from_bytes([1, 2, 3])
+    let q = math::bi_from_bytes([4, 5, 6])
+    let sum = math::bi_add(p, q)
+    say math::bi_cmp(sum, p) # 1
 end
 
 main()
@@ -96,73 +70,25 @@ main()
 
 ## 📖 API Reference
 
-| Symbol | Visibility | Description |
-|---|---|---|
-| `hello(name = "World")` | `pub function` | Returns a formatted greeting string. Defaults to `"World"` if null or empty. |
-| `new_config(name, count, priority, style)` | `pub function` | Factory constructing a `MathConfig` with sensible defaults. |
-| `make_config(name, count, priority, style, enabled, tags)` | `pub function` | Full constructor for `MathConfig`. |
-| `process(label, count, priority)` | `pub function` | Runs processing pipeline, returning an `ok_result` `MathResult`. |
-| `process_batch(labels)` | `pub function` | Formats an array of labels in batch, returning an array of strings. |
-| `ok_result(value, message)` | `pub function` | Constructs a successful `MathResult` container (`status = 0`). |
-| `error_result(message, errors)` | `pub function` | Constructs a failed `MathResult` container (`status = 1`). |
-| `make_stats(total, passed, failed, skipped)` | `pub function` | Constructs a `MathStats` metrics record. |
-| `format_summary(cfg)` | `pub function` | Formats summary of a config instance (satisfies `Summarizable`). |
-| `format_description(cfg)` | `pub function` | Formats description of a config instance (satisfies `Describable`). |
-| `format_config(config)` | `pub function` | Multi-field formatter producing descriptive overview of a `MathConfig`. |
-| `format_result(result)` | `pub function` | Formats a `MathResult` into `[OK]` or `[ERROR]` status line. |
-| `format_stats(stats)` | `pub function` | Formats total checked items and success rate percentage. |
-| `clamp(n, min_val, max_val)` | `pub function` | Clamps an integer value to the closed range `[min_val, max_val]`. |
-| `pluralize(n, singular, plural)` | `pub function` | Pattern-matches count to return singular or plural noun form. |
-| `repeat_string(label, count)` | `pub function` | Repeats a string into an array of `count` items. |
-| `Summarizable` | `pub interface` | Structural contract requiring `summary(self) -> string`. |
-| `Describable` | `pub interface` | Structural contract requiring `describe(self) -> string` and `is_valid(self) -> int`. |
-| `MathStatus` | `pub enum` | Lifecycle status codes (`Pending = 0`, `Active = 1`, `Archived = 2`, `Error = 3`). |
-| `MathPriority` | `pub enum` | Priority tiers (`Low = 0`, `Normal = 1`, `High = 2`, `Critical = 3`). |
-| `MathStyle` | `pub enum` | Presentation styles (`Standard = 0`, `Formal = 1`, `Casual = 2`). |
-| `MathConfig` | `pub struct` | Primary configuration model (`name`, `count`, `priority`, `style`, `enabled`, `tags`). |
-| `MathConfig.summary()` | `pub method` | Single-line formatted summary (satisfies `Summarizable`). |
-| `MathConfig.describe()` | `pub method` | Detailed multi-field description (satisfies `Describable`). |
-| `MathConfig.is_valid()` | `pub method` | Validation guard returning 1 if valid, 0 otherwise. |
-| `MathConfig.is_enabled()` | `pub method` | Returns 1 if active, 0 if disabled. |
-| `MathConfig.with_name(new_name)` | `pub method` | Immutable copy with updated name. |
-| `MathConfig.with_priority(new_prio)` | `pub method` | Immutable copy with updated priority tier. |
-| `MathResult` | `pub struct` | Operation outcome model (`value`, `status`, `message`, `errors`). |
-| `MathResult.is_ok()` | `pub method` | Returns 1 if successful (`status == 0`), 0 otherwise. |
-| `MathResult.is_error()` | `pub method` | Returns 1 if error (`status != 0`), 0 otherwise. |
-| `MathResult.unwrap_or(fallback)` | `pub method` | Returns message on success, or fallback on error. |
-| `MathStats` | `pub struct` | Run statistics model (`total`, `passed`, `failed`, `skipped`). |
-| `MathStats.total_checked()` | `pub method` | Sum of passed and failed items count. |
-| `MathStats.success_rate()` | `pub method` | Computed percentage string (e.g. `"95%"`). |
-
-> [!TIP]
-> **Internal Helpers & Documentation:** Public symbols are documented with `##` Markdown docstrings, enabling automatic API documentation generation via `alya doc`. Private functions such as `build_salutation` and `build_priority_label` in `src/core/formatter.alya` are not annotated with `pub` and remain encapsulated within their respective modules.
+| Function | Arguments | Returns | Description |
+|---|---|---|---|
+| `bi_from_bytes(b)` | `b: list` | `list` | Big-endian bytes to little-endian 30-bit limbs. |
+| `bi_to_bytes(a, n)` | `a: list, n: int` | `list` | Limbs to big-endian bytes of exact length `n`. |
+| `bi_cmp(a, b)` | `a: list, b: list` | `int` | -1 when `a < b`, 0 when equal, 1 when `a > b`. |
+| `bi_add(a, b)` | `a: list, b: list` | `list` | Sum limb array. |
+| `bi_sub(a, b)` | `a: list, b: list` | `list` | Difference (`a` must be greater or equal). |
+| `bi_mul(a, b)` | `a: list, b: list` | `list` | Schoolbook product. |
+| `bi_divmod(a, b)` | `a: list, b: list` | `list` | Array `[quotient, remainder]`. |
+| `bi_mod(a, m)` | `a: list, m: list` | `list` | Remainder limb array. |
+| `bi_modexp_int(b, e, m)` | `b: list, e: int, m: list` | `list` | `base^exp mod modulo` with int exponent. |
+| `bi_modexp(b, e, m)` | `b: list, e: list, m: list` | `list` | `base^exp mod modulo` with multi-limb exponent. |
 
 ---
 
 ## 🧪 Running Tests & Benchmarks
 
-Run the automated test suite using `alya test`:
-
 ```bash
 alya test
-```
-
-Generate static API documentation:
-
-```bash
-alya doc . -o docs --markdown
-```
-
-Run the benchmark suite:
-
-```bash
-alya run benches/bench_basic.alya
-```
-
-Run the example demo:
-
-```bash
-alya run examples/demo.alya
 ```
 
 Check code formatting:
@@ -176,15 +102,6 @@ Run static code linter:
 ```bash
 alya lint . --check
 ```
-
----
-
-### 💻 Developer Tooling & VS Code Integration
-
-This package comes preconfigured with recommended workspace settings and tasks for **Visual Studio Code**:
-- **LSP & Formatting**: Auto-formatting on save and real-time Language Server diagnostics via `alya-lang.vscode-alya`.
-- **DAP Debugging**: Launch configurations in `.vscode/launch.json` ready for interactive step-debugging via `F5`.
-- **Predefined Tasks**: Press `Ctrl+Shift+B` or run tasks (`Test`, `Lint`, `Format`, `Build Docs`) directly from the Command Palette.
 
 ---
 
