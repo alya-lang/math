@@ -103,10 +103,15 @@ main()
 |---|---|---|---|
 | `bi_from_bytes(b)` | `b: list` | `list` | Big-endian bytes to limbs. |
 | `bi_to_bytes(a, n)` | `a: list, n: int` | `list` | Limbs to big-endian bytes of exact length `n`. |
+| `bi_mask()` | — | `int` | 30-bit limb mask (`2^30 - 1`). |
+| `bi_trim(a)` | `a: list` | `list` | Strips leading zero limbs. |
 | `bi_cmp(a, b)` | `a: list, b: list` | `int` | -1 when `a < b`, 0 when equal, 1 when `a > b`. |
+| `bi_is_zero(a)` | `a: list` | `int` | 1 when zero, else 0. |
 | `bi_add(a, b)` | `a: list, b: list` | `list` | Sum limb array. |
 | `bi_sub(a, b)` | `a: list, b: list` | `list` | Difference (`a` must be greater or equal). |
 | `bi_mul(a, b)` | `a: list, b: list` | `list` | Schoolbook product. |
+| `bi_shl(a, l, b)` | `a: list, l: int, b: int` | `list` | Left shift by limbs + bits. |
+| `bi_shr_limbs(a, b)` | `a: list, b: int` | `list` | Right shift by 1..15 bits. |
 | `bi_divmod(a, b)` | `a: list, b: list` | `list` | Array `[quotient, remainder]`. |
 | `bi_mod(a, m)` | `a: list, m: list` | `list` | Remainder limb array. |
 | `bi_modexp_int(b, e, m)` | `b: list, e: int, m: list` | `list` | `base^exp mod modulo` with int exponent. |
