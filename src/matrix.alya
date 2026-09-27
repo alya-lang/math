@@ -228,8 +228,13 @@ pub function mat_frobenius(m: Matrix) -> float
 end
 
 ## Reads a float entry from a flat buffer (typed read path).
+##
+## NOTE: the annotated binding is load-bearing, do NOT simplify to
+## `return w[idx]`: direct float returns of array elements miscompile on
+## ARM64 (denormal garbage), see alya-lang/alya#51.
 function _mat_at(w, idx: int) -> float
-    return w[idx]
+    let v: float = w[idx]
+    return v
 end
 
 ## Swaps two rows of a flat row-major buffer.
