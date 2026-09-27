@@ -21,6 +21,9 @@ import "./bigint.alya"
 ## Every limb holds a value below `2^limb_bits()`, little-endian first.
 ## Products of two limbs stay below 2^60, so every intermediate is exact
 ## in 64-bit signed arithmetic.
+##
+## NOTE: exposed as a function because an aliased `pub let` miscompiles
+## (reads zero/garbage, see alya-lang/alya#48). Revisit when fixed.
 pub function limb_bits() -> int
     return 30
 end
