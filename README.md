@@ -6,7 +6,8 @@
 [![Package Version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Falya-lang%2Fmath%2Fmain%2Falya.toml&query=%24.package.version&label=Version&color=brightgreen)](alya.toml)
 
 Comprehensive mathematics for Alya: big integers (moved out of `crypto` v0.6.0),
-exact rationals, number theory, primes, combinatorics, complex numbers, matrices.
+exact rationals, number theory, primes, combinatorics, complex numbers,
+matrices, and exact rational polynomials.
 
 Complements `std/math` (trigonometry, statistics, vectors): this package owns
 exact and structural mathematics with zero dependencies.
@@ -15,15 +16,16 @@ exact and structural mathematics with zero dependencies.
 
 ## 🌟 Features
 
-- 🧮 **Big Integers**: 30-bit-limb add/sub/mul/divmod/modexp/gcd/pow for RSA-scale operands
+- 🧮 **Big Integers**: 30-bit-limb add/sub/mul/divmod/modexp/gcd/pow/lcm for RSA-scale operands
 - ➗ **Exact Rationals**: sign + numerator/denominator limbs, always reduced, exact decimal rendering
-- 🔢 **Number Theory**: overflow-free isqrt, extended GCD, mulmod/powmod/modinv, totient, factorization
-- 🔍 **Primes**: Eratosthenes sieve, deterministic 64-bit Miller-Rabin, next-prime and prime generation
+- 🔢 **Number Theory**: overflow-free isqrt, extended GCD, mulmod/powmod/modinv, totient, bit utils, CRT
+- 🔍 **Primes**: Eratosthenes sieve, deterministic 64-bit Miller-Rabin, Pollard Rho factorization, prime generation
 - 🎲 **Combinatorics**: exact factorial/permutation/combination/Fibonacci in int and bigint domains
 - 🌀 **Complex Numbers**: float complex arithmetic with struct-method ergonomics
-- 🧱 **Matrices**: arithmetic, transpose, determinant, inverse, and linear solves
+- 🧱 **Matrices**: arithmetic, transpose, trace, determinant, rank, inverse, and linear solves
+- ⛓️ **Polynomials**: exact rational-coefficient algebra (add/mul/divmod/GCD/eval/derivative)
 - ⚡ **Zero dependencies**: 100% pure Alya
-- 🧪 **Well Tested**: ground-truth vectors cross-checked with Python (153 assertions)
+- 🧪 **Well Tested**: ground-truth vectors cross-checked with Python (207 assertions)
 
 ---
 
@@ -31,16 +33,17 @@ exact and structural mathematics with zero dependencies.
 
 ```
 math/
-├── alya.toml               # Package manifest (v0.2.0)
+├── alya.toml               # Package manifest (v0.3.0)
 ├── src/
 │   ├── lib.alya            # Central public API export facade
-│   ├── bigint.alya         # Multi-precision add/sub/mul/divmod/modexp/gcd/pow
+│   ├── bigint.alya         # Multi-precision add/sub/mul/divmod/modexp/gcd/pow/lcm
 │   ├── rational.alya       # Exact fractions over bigint limbs
-│   ├── numtheory.alya      # isqrt, xgcd, mulmod, powmod, modinv, totient, factor
-│   ├── primes.alya         # Sieve, Miller-Rabin, prime generation
+│   ├── numtheory.alya      # isqrt, xgcd, mulmod, powmod, modinv, bit utils, CRT
+│   ├── primes.alya         # Sieve, Miller-Rabin, Pollard Rho, factor, totient, gen
 │   ├── combin.alya         # Factorial, nPr, nCr, Fibonacci (int + bigint)
 │   ├── complex.alya        # Float complex numbers
-│   └── matrix.alya         # Dense float matrices
+│   ├── matrix.alya         # Dense float matrices
+│   └── poly.alya           # Exact rational-coefficient polynomials
 ├── tests/
 │   ├── test_basic.alya     # Bigint ground-truth suite
 │   ├── test_numtheory.alya # Number theory suite
@@ -48,7 +51,8 @@ math/
 │   ├── test_combin.alya    # Combinatorics suite
 │   ├── test_rational.alya  # Rational suite
 │   ├── test_complex.alya   # Complex suite
-│   └── test_matrix.alya    # Matrix suite
+│   ├── test_matrix.alya    # Matrix suite
+│   └── test_poly.alya      # Polynomial suite
 └── benches/
     └── bench_basic.alya    # Micro-benchmarks
 ```
@@ -61,13 +65,13 @@ Add `math` to your `alya.toml`:
 
 ```toml
 [dependencies]
-math = { git = "https://github.com/alya-lang/math", tag = "v0.2.0" }
+math = { git = "https://github.com/alya-lang/math", tag = "v0.3.0" }
 ```
 
 Or install it directly via CLI:
 
 ```bash
-alya add math --git https://github.com/alya-lang/math --tag v0.2.0
+alya add math --git https://github.com/alya-lang/math --tag v0.3.0
 alya install
 ```
 
@@ -117,6 +121,7 @@ main()
 | `bi_modexp_int(b, e, m)` | `b: list, e: int, m: list` | `list` | `base^exp mod modulo` with int exponent. |
 | `bi_modexp(b, e, m)` | `b: list, e: list, m: list` | `list` | `base^exp mod modulo` with multi-limb exponent. |
 | `bi_gcd(a, b)` | `a: list, b: list` | `list` | Greatest common divisor limbs. |
+| `bi_lcm(a, b)` | `a: list, b: list` | `list` | Least common multiple limbs. |
 | `bi_pow_int(b, e)` | `b: list, e: int` | `list` | `base^exp` limbs. |
 | `limb_bits()` | — | `int` | Limb width contract (`30`). |
 
@@ -144,6 +149,11 @@ main()
 | `mulmod(a, b, m)` | `a: int, b: int, m: int` | `int` | Overflow-safe `(a*b) mod m`. |
 | `powmod(b, e, m)` | `b: int, e: int, m: int` | `int` | `(base^exp) mod m`. |
 | `modinv(a, m)` | `a: int, m: int` | `int` | Modular inverse, or -1. |
+| `bit_len(n)` | `n: int` | `int` | Bit length (`0` for `0`). |
+| `popcount(n)` | `n: int` | `int` | Number of set bits. |
+| `is_pow2(n)` | `n: int` | `int` | 1 for powers of two. |
+| `next_pow2(n)` | `n: int` | `int` | Smallest `2^k >= n`. |
+| `crt(a1, m1, a2, m2)` | `a1: int, m1: int, a2: int, m2: int` | `map` | `{ok, x, m}` Chinese Remainder. |
 
 ### Primes
 
@@ -195,6 +205,20 @@ main()
 | `mat_det(m)` | Determinant (`0.0` when singular). |
 | `mat_inv(m)` | `{ok, inv}` (Gauss-Jordan). |
 | `mat_solve(a, b)` / `mat_solve_f(a, b)` | `{ok, x}` for int/float right-hand sides. |
+| `mat_rank(m)` | Rank (rectangular OK). |
+
+### Polynomials (`pq_*`, exact `Rat` coefficients, ascending)
+
+| Function | Description |
+|---|---|
+| `pq_from_ints(a)` | Constructor from ascending ints. |
+| `pq_trim(p)` / `pq_deg(p)` | Normalization / degree (-1 for zero). |
+| `pq_add(a, b)` / `pq_sub(a, b)` / `pq_mul(a, b)` | Exact arithmetic. |
+| `pq_divmod(n, d)` | `{q, r, error}` long division. |
+| `pq_gcd(a, b)` | Monic Euclid GCD. |
+| `pq_eval(p, x)` | Horner evaluation at a `Rat`. |
+| `pq_deriv(p)` | Formal derivative. |
+| `pq_to_string(p)` | Rendering (`"x^2 - 1"`). |
 
 ## 🧪 Running Tests & Benchmarks
 

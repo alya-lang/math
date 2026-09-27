@@ -21,6 +21,7 @@ import "./combin.alya"
 import "./rational.alya"
 import "./complex.alya"
 import "./matrix.alya"
+import "./poly.alya"
 
 ## Limb width in bits for the `bi_*` representation contract.
 ##

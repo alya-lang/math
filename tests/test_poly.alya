@@ -1,0 +1,70 @@
+# Exact rational-polynomial tests (hand-computed identities)
+import "std/test"
+import "../src/lib.alya" as math
+
+# Compares coefficient arrays via exact decimal rendering.
+function t_poly_eq(a, b) -> int
+    if len(a) != len(b)
+        return 0
+    end
+    let i = 0
+    while i < len(a)
+        if math::rat_to_string(a[i]) != math::rat_to_string(b[i])
+            return 0
+        end
+        i += 1
+    end
+    return 1
+end
+
+function main()
+    test_suite("Polynomial Tests")
+    let r = runner_new()
+
+    runner_assert_eq(r, math::pq_deg(math::pq_from_ints([0, 0])), -1, "deg zero")
+    runner_assert_eq(r, math::pq_deg(math::pq_from_ints([5])), 0, "deg const")
+    runner_assert_eq(r, math::pq_deg(math::pq_from_ints([1, 2, 0])), 1, "deg trim")
+
+    # (x+1) + (x-1) = 2x.
+    let sum = math::pq_add(math::pq_from_ints([1, 1]), math::pq_from_ints([-1, 1]))
+    runner_assert_eq(r, t_poly_eq(sum, math::pq_from_ints([0, 2])), 1, "add")
+
+    # (x+1)(x-1) = x^2-1.
+    let prod = math::pq_mul(math::pq_from_ints([1, 1]), math::pq_from_ints([-1, 1]))
+    runner_assert_eq(r, t_poly_eq(prod, math::pq_from_ints([-1, 0, 1])), 1, "mul")
+
+    # (x^2-1)/(x-1) = x+1 remainder 0.
+    let dm1 = math::pq_divmod(math::pq_from_ints([-1, 0, 1]), math::pq_from_ints([-1, 1]))
+    runner_assert_str_eq(r, dm1["error"], "", "divmod clean")
+    runner_assert_eq(r, t_poly_eq(dm1["q"], math::pq_from_ints([1, 1])), 1, "divmod quotient")
+    runner_assert_eq(r, t_poly_eq(dm1["r"], math::pq_from_ints([0])), 1, "divmod remainder")
+
+    # (x^2+1)/(x+1) = x-1 remainder 2.
+    let dm2 = math::pq_divmod(math::pq_from_ints([1, 0, 1]), math::pq_from_ints([1, 1]))
+    runner_assert_eq(r, t_poly_eq(dm2["q"], math::pq_from_ints([-1, 1])), 1, "divmod quotient 2")
+    runner_assert_eq(r, t_poly_eq(dm2["r"], math::pq_from_ints([2])), 1, "divmod remainder 2")
+
+    # gcd(x^2-1, x-1) = x-1.
+    let g = math::pq_gcd(math::pq_from_ints([-1, 0, 1]), math::pq_from_ints([-1, 1]))
+    runner_assert_eq(r, t_poly_eq(g, math::pq_from_ints([-1, 1])), 1, "gcd")
+
+    # P(1) = 0 and P(1/2) = -3/4 for P = x^2-1.
+    let p = math::pq_from_ints([-1, 0, 1])
+    runner_assert_str_eq(r, math::rat_to_string(math::pq_eval(p, math::rat_from_int(1))), "0", "eval one")
+    runner_assert_str_eq(r, math::rat_to_string(math::pq_eval(p, math::rat_from_int(1, 2))), "-3/4", "eval half")
+
+    # (3x^2+2x+1)' = 6x+2.
+    let dp = math::pq_deriv(math::pq_from_ints([1, 2, 3]))
+    runner_assert_eq(r, t_poly_eq(dp, math::pq_from_ints([2, 6])), 1, "deriv")
+
+    runner_assert_str_eq(r, math::pq_to_string(math::pq_from_ints([-1, 0, 1])), "x^2 - 1", "string quad")
+    runner_assert_str_eq(r, math::pq_to_string(math::pq_from_ints([1, 1])), "x + 1", "string linear")
+    runner_assert_str_eq(r, math::pq_to_string(math::pq_from_ints([0])), "0", "string zero")
+
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+main()

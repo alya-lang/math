@@ -449,6 +449,21 @@ pub function bi_gcd(a, b) -> array
     return x
 end
 
+## Least common multiple (`[0]` when either operand is zero).
+##
+## # Arguments
+## * `a` - First operand limbs.
+## * `b` - Second operand limbs.
+##
+## # Returns
+## LCM limb array.
+pub function bi_lcm(a, b) -> array
+    if bi_is_zero(a) == 1 or bi_is_zero(b) == 1
+        return [0]
+    end
+    return bi_divmod(bi_mul(a, b), bi_gcd(a, b))[0]
+end
+
 ## Raises limbs to a non-negative int power by binary exponentiation.
 ##
 ## # Arguments

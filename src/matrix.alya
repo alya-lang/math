@@ -256,6 +256,52 @@ function _mat_absf(x: float) -> float
     return x
 end
 
+## Row-echelon rank of a flat buffer (rectangular OK, mutates `w`).
+function _mat_echelon_rank(w, rows: int, cols: int) -> int
+    let rank = 0
+    let r = 0
+    let c = 0
+    while r < rows and c < cols
+        let piv = r
+        let k = r + 1
+        while k < rows
+            if _mat_absf(_mat_at(w, k * cols + c)) > _mat_absf(_mat_at(w, piv * cols + c))
+                piv = k
+            end
+            k += 1
+        end
+        if _mat_absf(_mat_at(w, piv * cols + c)) < 0.000000000001
+            c += 1
+            continue
+        end
+        if piv != r
+            _mat_swap_rows(w, cols, r, piv)
+        end
+        let p = _mat_at(w, r * cols + c)
+        let rr = r + 1
+        while rr < rows
+            let f = _mat_at(w, rr * cols + c) / p
+            let cc = c
+            while cc < cols
+                w[rr * cols + cc] = _mat_at(w, rr * cols + cc) - f * _mat_at(w, r * cols + cc)
+                cc += 1
+            end
+            rr += 1
+        end
+        r += 1
+        c += 1
+        rank += 1
+    end
+    return rank
+end
+
+## Rank: number of linearly independent rows/columns (rectangular OK).
+pub function mat_rank(m: Matrix) -> int
+    let mc = mat_copy(m)
+    let w = mc.data
+    return _mat_echelon_rank(w, m.rows, m.cols)
+end
+
 ## Determinant via elimination with partial pivoting (square only).
 ##
 ## ### Returns

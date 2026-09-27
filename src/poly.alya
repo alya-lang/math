@@ -1,0 +1,254 @@
+## # Exact Polynomials over Rationals
+##
+## Part of the Alya Language package ecosystem (https://github.com/alya-lang).
+## Univariate polynomials with `Rat` coefficients in ascending order
+## (`[c0, c1, c2]` means `c0 + c1*x + c2*x^2`). All operations are exact:
+## long division, Euclid GCD (monic), Horner evaluation, and derivatives.
+## Construct from int arrays (no float I/O, sidesteps untyped reads).
+
+import "./rational.alya"
+
+## Zero coefficient constant.
+function _pq_zero() -> Rat
+    return Rat { neg: 0, num: [0], den: [1] }
+end
+
+## Tests whether every coefficient is zero (empty counts as zero).
+function _pq_is_zero(p) -> int
+    let i = 0
+    while i < len(p)
+        if rat_is_zero(p[i]) == 0
+            return 0
+        end
+        i += 1
+    end
+    return 1
+end
+
+## Trims leading zero coefficients (keeps at least one).
+pub function pq_trim(p) -> array
+    let n = len(p)
+    while n > 1 and rat_is_zero(p[n - 1]) == 1
+        n -= 1
+    end
+    let out = []
+    let i = 0
+    while i < n
+        out.push(p[i])
+        i += 1
+    end
+    if len(out) == 0
+        out.push(_pq_zero())
+    end
+    return out
+end
+
+## Degree (`-1` for the zero polynomial).
+pub function pq_deg(p) -> int
+    let t = pq_trim(p)
+    if _pq_is_zero(t) == 1
+        return -1
+    end
+    return len(t) - 1
+end
+
+## Builds a polynomial from ascending ints (`[1, 2]` means `1 + 2x`).
+pub function pq_from_ints(a) -> array
+    let out = []
+    let i = 0
+    while i < len(a)
+        out.push(rat_from_int(a[i]))
+        i += 1
+    end
+    return pq_trim(out)
+end
+
+## Coefficient at degree `i` (zero past the end).
+function _pq_at(p, i: int) -> Rat
+    if i < 0 or i >= len(p)
+        return _pq_zero()
+    end
+    return p[i]
+end
+
+## Adds two polynomials.
+pub function pq_add(a, b) -> array
+    let n = len(a)
+    if len(b) > n
+        n = len(b)
+    end
+    let out = []
+    let i = 0
+    while i < n
+        out.push(rat_add(_pq_at(a, i), _pq_at(b, i)))
+        i += 1
+    end
+    return pq_trim(out)
+end
+
+## Subtracts `b` from `a`.
+pub function pq_sub(a, b) -> array
+    let n = len(a)
+    if len(b) > n
+        n = len(b)
+    end
+    let out = []
+    let i = 0
+    while i < n
+        out.push(rat_sub(_pq_at(a, i), _pq_at(b, i)))
+        i += 1
+    end
+    return pq_trim(out)
+end
+
+## Multiplies two polynomials (convolution).
+pub function pq_mul(a, b) -> array
+    if _pq_is_zero(a) == 1 or _pq_is_zero(b) == 1
+        return [_pq_zero()]
+    end
+    let out = []
+    let i = 0
+    while i < len(a) + len(b) - 1
+        out.push(_pq_zero())
+        i += 1
+    end
+    i = 0
+    while i < len(a)
+        let j = 0
+        while j < len(b)
+            out[i + j] = rat_add(out[i + j], rat_mul(a[i], b[j]))
+            j += 1
+        end
+        i += 1
+    end
+    return pq_trim(out)
+end
+
+## Evaluates at a rational point (Horner scheme).
+pub function pq_eval(p, x: Rat) -> Rat
+    let res = _pq_zero()
+    let i = len(p) - 1
+    while i >= 0
+        res = rat_add(rat_mul(res, x), p[i])
+        i -= 1
+    end
+    return res
+end
+
+## Formal derivative.
+pub function pq_deriv(p) -> array
+    if len(p) <= 1
+        return [_pq_zero()]
+    end
+    let out = []
+    let i = 1
+    while i < len(p)
+        out.push(rat_mul(p[i], rat_from_int(i)))
+        i += 1
+    end
+    return pq_trim(out)
+end
+
+## Polynomial long division (exact rational arithmetic).
+##
+## ### Returns
+## Map with `q` (quotient) and `r` (remainder, degree below divisor's).
+pub function pq_divmod(n, d) -> map
+    let fail = { "q": [_pq_zero()], "r": pq_trim(n), "error": "division by zero polynomial" }
+    let dd = pq_trim(d)
+    if _pq_is_zero(dd) == 1
+        return fail
+    end
+    let nn = pq_trim(n)
+    let q = [_pq_zero()]
+    let r = nn
+    let dd_deg = len(dd) - 1
+    let lead = dd[dd_deg]
+    while pq_deg(r) >= dd_deg
+        let rd = len(pq_trim(r)) - 1
+        let t = rat_div(r[rd], lead)
+        let shift = rd - dd_deg
+        while len(q) <= shift
+            q.push(_pq_zero())
+        end
+        q[shift] = rat_add(q[shift], t)
+        let i = 0
+        while i <= dd_deg
+            r[shift + i] = rat_sub(r[shift + i], rat_mul(t, dd[i]))
+            i += 1
+        end
+        r = pq_trim(r)
+    end
+    return { "q": pq_trim(q), "r": r, "error": "" }
+end
+
+## Divides every coefficient by the leading one (monic form).
+function _pq_monic(p) -> array
+    let t = pq_trim(p)
+    if _pq_is_zero(t) == 1
+        return t
+    end
+    let lc = t[len(t) - 1]
+    let out = []
+    let i = 0
+    while i < len(t)
+        out.push(rat_div(t[i], lc))
+        i += 1
+    end
+    return out
+end
+
+## Greatest common divisor via Euclid, returned monic.
+pub function pq_gcd(a, b) -> array
+    let x = pq_trim(a)
+    let y = pq_trim(b)
+    while _pq_is_zero(y) == 0
+        let r = pq_divmod(x, y)["r"]
+        x = y
+        y = r
+    end
+    return _pq_monic(x)
+end
+
+## Renders a polynomial (`"x^2 - 1"`, `"2x + 3"`, `"0"`).
+pub function pq_to_string(p) -> string
+    let t = pq_trim(p)
+    if _pq_is_zero(t) == 1
+        return "0"
+    end
+    let one = rat_from_int(1)
+    let s = ""
+    let i = len(t) - 1
+    while i >= 0
+        let c = t[i]
+        if rat_is_zero(c) == 0
+            let mag = c
+            let sign = "+"
+            if c.neg == 1
+                sign = "-"
+                mag = rat_neg(c)
+            end
+            let coeff = rat_to_string(mag)
+            if rat_cmp(mag, one) == 0 and i > 0
+                coeff = ""
+            end
+            let term = coeff
+            if i == 1
+                term = term + "x"
+            elif i > 1
+                term = term + "x^" + str(i)
+            end
+            if len(s) == 0
+                if sign == "-"
+                    s = "-" + term
+                else
+                    s = term
+                end
+            else
+                s = s + " " + sign + " " + term
+            end
+        end
+        i -= 1
+    end
+    return s
+end

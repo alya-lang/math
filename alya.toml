@@ -1,14 +1,14 @@
 [package]
 name = "math"
-version = "0.2.0"
+version = "0.3.0"
 alya-version = "0.0.19"
 entry = "src/lib.alya"
-description = "Comprehensive mathematics for Alya (big integers, rationals, number theory, primes, combinatorics, complex numbers, matrices)"
+description = "Comprehensive mathematics for Alya (big integers, rationals, number theory, primes, combinatorics, complex numbers, matrices, polynomials)"
 authors = ["Alya Language Contributors <https://github.com/alya-lang>"]
 license = "MIT"
 homepage = "https://github.com/alya-lang/alya"
 repository = "https://github.com/alya-lang/math"
-keywords = ["alya", "alya-lang", "package", "math", "bigint", "big-integer", "rational", "number-theory", "primes", "miller-rabin", "sieve", "combinatorics", "factorial", "fibonacci", "complex", "matrix", "modexp", "modular-arithmetic"]
+keywords = ["alya", "alya-lang", "package", "math", "bigint", "big-integer", "rational", "number-theory", "primes", "miller-rabin", "sieve", "combinatorics", "factorial", "fibonacci", "complex", "matrix", "modexp", "modular-arithmetic", "polynomials", "chinese-remainder", "rank", "bit-operations"]
 
 [dependencies]
 

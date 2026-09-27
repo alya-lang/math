@@ -28,6 +28,7 @@ function main()
 
     runner_assert_eq(r, math::rat_is_zero(math::rat_from_int(0)), 1, "is_zero")
     runner_assert_eq(r, math::rat_is_one(math::rat_from_int(4, 4)), 1, "is_one reduced")
+    runner_assert_str_eq(r, math::rat_to_string(math::rat_inv(math::rat_from_int(2, 3))), "3/2", "inv")
 
     # Harmonic sum H(10) = 7381/2520.
     let h = math::rat_from_int(0)

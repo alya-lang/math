@@ -3,6 +3,21 @@
 import "std/test"
 import "../src/lib.alya" as math
 
+# Element-wise limb equality.
+function t_arr_eq(a, b) -> int
+    if len(a) != len(b)
+        return 0
+    end
+    let i = 0
+    while i < len(a)
+        if a[i] != b[i]
+            return 0
+        end
+        i += 1
+    end
+    return 1
+end
+
 # Minimal hex helpers so the suite stays dependency-free (vectors are lowercase).
 function _t_hex_val(ch) -> int
     let c = ord(ch)
@@ -40,6 +55,9 @@ function main()
     let r = runner_new()
 
     runner_assert_eq(r, math::limb_bits(), 30, "limb width contract")
+    runner_assert_eq(r, math::bi_mask(), 1073741823, "limb mask")
+    runner_assert_eq(r, t_arr_eq(math::bi_trim([1, 2, 0, 0]), [1, 2]), 1, "trim zeros")
+    runner_assert_eq(r, t_arr_eq(math::bi_trim([0, 0]), [0]), 1, "trim to one")
 
     let rt = math::bi_to_bytes(math::bi_from_bytes(t_hex_to_bytes("018ee90ff6c373e0ee4e3f0ad2")), 13)
     runner_assert_str_eq(r, t_bytes_to_hex(rt), "018ee90ff6c373e0ee4e3f0ad2", "bytes roundtrip")

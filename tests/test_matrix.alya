@@ -48,6 +48,19 @@ function main()
     let s = math::mat_add(math::mat_identity(2), math::mat_scale(math::mat_identity(2), 2.0))
     runner_assert_eq(r, t_mat_approx(s, math::mat(2, 2, [3, 0, 0, 3]), 0.000001), 1, "add+scale")
 
+    let d2 = math::mat_sub(math::mat(2, 2, [5, 6, 7, 8]), math::mat(2, 2, [1, 2, 3, 4]))
+    runner_assert_eq(r, t_mat_approx(d2, math::mat(2, 2, [4, 4, 4, 4]), 0.000001), 1, "sub")
+
+    let orig = math::mat(2, 2, [1, 2, 3, 4])
+    let cp = math::mat_copy(orig)
+    math::mat_set(cp, 0, 0, 9.0)
+    runner_assert_eq(r, t_approx(math::mat_get(orig, 0, 0), 1.0, 0.000001), 1, "copy isolation")
+    runner_assert_eq(r, t_approx(math::mat_get(cp, 0, 0), 9.0, 0.000001), 1, "copy write")
+
+    let z = math::mat_zeros(2, 3)
+    runner_assert_eq(r, z.rows, 2, "zeros rows")
+    runner_assert_eq(r, t_approx(math::mat_get(z, 1, 2), 0.0, 0.000001), 1, "zeros entry")
+
     runner_assert_eq(r, t_approx(math::mat_det(math::mat(2, 2, [1, 2, 3, 4])), -2.0, 0.000001), 1, "det 2x2")
     runner_assert_eq(r, t_approx(math::mat_det(math::mat(3, 3, [6, 1, 1, 4, -2, 5, 2, 8, 7])), -306.0, 0.000001), 1, "det 3x3")
     runner_assert_eq(r, t_approx(math::mat_det(math::mat(2, 2, [1, 2, 2, 4])), 0.0, 0.000001), 1, "det singular")
@@ -74,6 +87,12 @@ function main()
 
     let nosol = math::mat_solve(math::mat(2, 2, [1, 2, 2, 4]), [1, 2])
     runner_assert_eq(r, nosol["ok"], 0, "solve singular")
+
+    runner_assert_eq(r, math::mat_rank(math::mat_identity(3)), 3, "rank identity")
+    runner_assert_eq(r, math::mat_rank(math::mat(2, 2, [1, 2, 2, 4])), 1, "rank deficient")
+    runner_assert_eq(r, math::mat_rank(math::mat_zeros(2, 3)), 0, "rank zero")
+    runner_assert_eq(r, math::mat_rank(math::mat(2, 3, [1, 2, 3, 4, 5, 6])), 2, "rank wide")
+    runner_assert_eq(r, math::mat_rank(math::mat(2, 2, [0, 1, 1, 0])), 2, "rank swap")
 
     let fmat = math::mat_f(2, 2, [0.5, 1.5, 2.5, 3.5])
     runner_assert_eq(r, t_approx(math::mat_get(fmat, 1, 1), 3.5, 0.000001), 1, "mat_f entries")
