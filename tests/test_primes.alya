@@ -16,6 +16,7 @@ function t_arr_eq(a, b) -> int
     return 1
 end
 
+@cfg(feature = "primes")
 function main()
     test_suite("Prime Tests")
     let r = runner_new()
@@ -58,6 +59,18 @@ function main()
 
     runner_assert_eq(r, math::totient(1000036000099), 1000034000064, "totient semiprime")
 
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+# Needs the feature: register an empty suite so the file still
+# compiles and passes in slim views.
+@cfg(not(feature = "primes"))
+function main()
+    test_suite("Prime Tests (skipped without primes feature)")
+    let r = runner_new()
     let failed = runner_summary(r)
     if failed > 0
         exit(1)

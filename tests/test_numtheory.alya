@@ -17,6 +17,7 @@ function arr_eq(a, b) -> int
     return 1
 end
 
+@cfg(feature = "numtheory")
 function main()
     test_suite("NumTheory Tests")
     let r = runner_new()
@@ -89,6 +90,18 @@ function main()
     runner_assert_eq(r, arr_eq(math::bi_to_bytes(math::bi_lcm([6], [8]), 1), [24]), 1, "bi_lcm small")
     runner_assert_eq(r, arr_eq(math::bi_lcm([0], [8]), [0]), 1, "bi_lcm zero")
 
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+# Needs the feature: register an empty suite so the file still
+# compiles and passes in slim views.
+@cfg(not(feature = "numtheory"))
+function main()
+    test_suite("NumTheory Tests (skipped without numtheory feature)")
+    let r = runner_new()
     let failed = runner_summary(r)
     if failed > 0
         exit(1)

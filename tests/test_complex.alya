@@ -14,6 +14,7 @@ function t_approx(a: float, b: float, eps: float) -> int
     return 0
 end
 
+@cfg(feature = "complex")
 function main()
     test_suite("Complex Tests")
     let r = runner_new()
@@ -69,6 +70,18 @@ function main()
     runner_assert_eq(r, t_approx(pinv.re, 0.5, 0.000001), 1, "pow neg re")
     runner_assert_eq(r, t_approx(pinv.im, 0.0, 0.000001), 1, "pow neg im")
 
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+# Needs the feature: register an empty suite so the file still
+# compiles and passes in slim views.
+@cfg(not(feature = "complex"))
+function main()
+    test_suite("Complex Tests (skipped without complex feature)")
+    let r = runner_new()
     let failed = runner_summary(r)
     if failed > 0
         exit(1)

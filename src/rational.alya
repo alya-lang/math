@@ -4,6 +4,8 @@
 ## Fractions as sign + numerator/denominator limb arrays, always kept
 ## reduced (`gcd` via `bi_gcd`) with a positive denominator. Zero is `0/1`.
 
+import "./bigint.alya"
+
 ## Exact fraction with explicit sign.
 ##
 ## ### Fields

@@ -75,6 +75,29 @@ alya add math --git https://github.com/alya-lang/math --tag v0.3.0
 alya install
 ```
 
+### Package Features
+
+| Feature | Default | Description |
+|:---|:---:|:---|
+| `bigint` | ✅ | Arbitrary-precision integers (`bi_*`, needed by `rational`, `combin` big variants, `crypto`, `tls`). |
+| `numtheory` | ✅ | Integer number theory (`isqrt`, `modexp`, `totient`, ...). |
+| `primes` | ✅ | Primes (`sieve`, `next_prime`, `gen_prime`). |
+| `combin` | ✅ | Combinatorics (`fact`, `ncr`, `fib`, big variants need `bigint`). |
+| `rational` | ✅ | Exact rationals (`rat_*`, needs `bigint`). |
+| `complex` | ✅ | Complex numbers (`cx`, ...). |
+| `matrix` | ✅ | Matrices (`mat_*`, solve, det). |
+| `poly` | ✅ | Polynomials over rationals (needs `rational`). |
+
+```bash
+# Full build (default)
+alya install
+alya test
+
+# Slim build (pick what you need, e.g. primes only)
+alya install --no-default-features
+alya test --no-default-features --features primes
+```
+
 ---
 
 ## 🚀 Quick Start

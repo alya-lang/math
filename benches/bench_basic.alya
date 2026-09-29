@@ -7,6 +7,21 @@ import "../src/lib.alya" as math
 function main()
     let runner = bench_runner("math Micro-Benchmarks")
 
+    @cfg(feature = "bigint")
+    bench_bigint(runner)
+
+    @cfg(feature = "primes")
+    bench_primes(runner)
+
+    @cfg(feature = "matrix")
+    bench_matrix(runner)
+    bench_summary(runner)
+end
+
+main()
+
+@cfg(feature = "bigint")
+function bench_bigint(runner)
     # Bench 1: 2048-bit modular exponentiation (RSA core)
     let mexp_base = math::bi_from_bytes([21, 123, 205, 21])
     let mexp_mod = math::bi_sub(math::bi_shl([1], 128, 0), math::bi_from_bytes([29, 163, 17]))
@@ -28,7 +43,10 @@ function main()
         j += 1
     end
     bench_stop(runner, "bi_mul() 112-bit 2000 ops")
+end
 
+@cfg(feature = "primes")
+function bench_primes(runner)
     # Bench 3: Eratosthenes sieve to 20000
     bench_start(runner, 20)
     let k = 0
@@ -37,7 +55,10 @@ function main()
         k += 1
     end
     bench_stop(runner, "sieve() 20000 20 runs")
+end
 
+@cfg(feature = "matrix")
+function bench_matrix(runner)
     # Bench 4: 10x10 matrix product
     let mm = math::mat(10, 10)
     bench_start(runner, 100)
@@ -47,8 +68,4 @@ function main()
         q += 1
     end
     bench_stop(runner, "mat_mul() 10x10 100 ops")
-
-    bench_summary(runner)
 end
-
-main()

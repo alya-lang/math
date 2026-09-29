@@ -4,27 +4,45 @@
 import "../src/lib.alya" as math
 
 function main()
+    @cfg(feature = "rational")
     say "--- 1. Exact rationals ---"
+    @cfg(feature = "rational")
     let s = math::rat_add(math::rat_from_int(1, 2), math::rat_from_int(1, 3))
+    @cfg(feature = "rational")
     say "1/2 + 1/3 = " + math::rat_to_string(s)
 
+    @cfg(feature = "primes")
     say "--- 2. Primes ---"
+    @cfg(feature = "primes")
     say "prime 16-bit: " + str(math::gen_prime(16))
+    @cfg(feature = "primes")
     say "next after 100: " + str(math::next_prime(100))
 
+    @cfg(feature = "combin")
     say "--- 3. Combinatorics ---"
+    @cfg(feature = "combin")
     say "poker hands: " + str(math::ncr(52, 5))
+    @cfg(feature = "combin")
     say "fib(50): " + str(math::fib(50))
 
+    @cfg(feature = "complex")
     say "--- 4. Complex ---"
+    @cfg(feature = "complex")
     let z = math::cx(3.0, -4.0)
+    @cfg(feature = "complex")
     say "|3-4i| = " + str(z.abs())
 
+    @cfg(feature = "matrix")
     say "--- 5. Matrices ---"
+    @cfg(feature = "matrix")
     let a = math::mat(2, 2, [2, 3, 1, 2])
+    @cfg(feature = "matrix")
     say "det: " + str(math::mat_det(a))
+    @cfg(feature = "matrix")
     let sol = math::mat_solve(a, [8, 5])
+    @cfg(feature = "matrix")
     let x0: float = sol["x"][0]
+    @cfg(feature = "matrix")
     say "solve ok: " + str(sol["ok"]) + " x0=" + str(x0)
     say "Done!"
 end

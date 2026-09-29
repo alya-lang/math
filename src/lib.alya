@@ -14,13 +14,21 @@
 ## end
 ## ```
 
+@cfg(feature = "bigint")
 import "./bigint.alya"
+@cfg(feature = "numtheory")
 import "./numtheory.alya"
+@cfg(feature = "primes")
 import "./primes.alya"
+@cfg(feature = "combin")
 import "./combin.alya"
+@cfg(feature = "rational")
 import "./rational.alya"
+@cfg(feature = "complex")
 import "./complex.alya"
+@cfg(feature = "matrix")
 import "./matrix.alya"
+@cfg(feature = "poly")
 import "./poly.alya"
 
 ## Limb width in bits for the `bi_*` representation contract.

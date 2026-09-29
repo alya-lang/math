@@ -12,6 +12,17 @@ keywords = ["alya", "alya-lang", "package", "math", "bigint", "rational", "numbe
 
 [dependencies]
 
+[features]
+default = ["bigint", "numtheory", "primes", "combin", "rational", "complex", "matrix", "poly"]
+bigint = []
+numtheory = []
+primes = []
+combin = []
+rational = []
+complex = []
+matrix = []
+poly = []
+
 # [build]
 # c-sources = ["c/source.c"]
 # c-flags = ["-O2"]

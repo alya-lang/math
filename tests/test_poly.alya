@@ -17,6 +17,7 @@ function t_poly_eq(a, b) -> int
     return 1
 end
 
+@cfg(feature = "poly")
 function main()
     test_suite("Polynomial Tests")
     let r = runner_new()
@@ -61,6 +62,18 @@ function main()
     runner_assert_str_eq(r, math::pq_to_string(math::pq_from_ints([1, 1])), "x + 1", "string linear")
     runner_assert_str_eq(r, math::pq_to_string(math::pq_from_ints([0])), "0", "string zero")
 
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+# Needs the feature: register an empty suite so the file still
+# compiles and passes in slim views.
+@cfg(not(feature = "poly"))
+function main()
+    test_suite("Polynomial Tests (skipped without poly feature)")
+    let r = runner_new()
     let failed = runner_summary(r)
     if failed > 0
         exit(1)

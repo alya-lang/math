@@ -5,6 +5,8 @@
 ## variants stay in the 64-bit domain (`20!` is the largest exact factorial);
 ## the `_big` variants use `bigint` limbs and grow without bound.
 
+import "./bigint.alya"
+
 ## Exact factorial in the int domain (`n <= 20`).
 ##
 ## ### Parameters

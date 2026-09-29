@@ -15,6 +15,7 @@ function t_limbs_to_int(a) -> int
     return acc
 end
 
+@cfg(feature = "combin")
 function main()
     test_suite("Combinatorics Tests")
     let r = runner_new()
@@ -55,6 +56,18 @@ function main()
     let cass = math::bi_sub(math::bi_mul(f99, f101), math::bi_mul(f100, f100))
     runner_assert_eq(r, math::bi_cmp(cass, [1]), 0, "fib_big cassini 100")
 
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+# Needs the feature: register an empty suite so the file still
+# compiles and passes in slim views.
+@cfg(not(feature = "combin"))
+function main()
+    test_suite("Combinatorics Tests (skipped without combin feature)")
+    let r = runner_new()
     let failed = runner_summary(r)
     if failed > 0
         exit(1)

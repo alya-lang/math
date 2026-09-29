@@ -50,6 +50,7 @@ function t_bytes_to_hex(bytes) -> str
     return res
 end
 
+@cfg(feature = "bigint")
 function main()
     test_suite("BigInt Tests")
     let r = runner_new()
@@ -101,6 +102,18 @@ function main()
     let mexp_small = math::bi_modexp_int(math::bi_from_bytes(t_hex_to_bytes("075bcd15")), 65537, math::bi_from_bytes(t_hex_to_bytes("00ffffffffffffffffffffffffffffff61")))
     runner_assert_eq(r, math::bi_cmp(mexp_limbs, mexp_small), 0, "limb-exponent matches int-exponent")
 
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+# Needs the feature: register an empty suite so the file still
+# compiles and passes in slim views.
+@cfg(not(feature = "bigint"))
+function main()
+    test_suite("BigInt Tests (skipped without bigint feature)")
+    let r = runner_new()
     let failed = runner_summary(r)
     if failed > 0
         exit(1)

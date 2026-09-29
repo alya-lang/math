@@ -2,6 +2,7 @@
 import "std/test"
 import "../src/lib.alya" as math
 
+@cfg(feature = "rational")
 function main()
     test_suite("Rational Tests")
     let r = runner_new()
@@ -43,6 +44,18 @@ function main()
     runner_assert_eq(r, f > 0.333, 1, "to_float lower")
     runner_assert_eq(r, f < 0.334, 1, "to_float upper")
 
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+# Needs the feature: register an empty suite so the file still
+# compiles and passes in slim views.
+@cfg(not(feature = "rational"))
+function main()
+    test_suite("Rational Tests (skipped without rational feature)")
+    let r = runner_new()
     let failed = runner_summary(r)
     if failed > 0
         exit(1)

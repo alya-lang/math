@@ -29,6 +29,7 @@ function t_mat_approx(a, b, eps: float) -> int
     return 1
 end
 
+@cfg(feature = "matrix")
 function main()
     test_suite("Matrix Tests")
     let r = runner_new()
@@ -103,6 +104,18 @@ function main()
     let fx: float = fsol["x"][0]
     runner_assert_eq(r, t_approx(fx, 2.0, 0.000001), 1, "solve_f x")
 
+    let failed = runner_summary(r)
+    if failed > 0
+        exit(1)
+    end
+end
+
+# Needs the feature: register an empty suite so the file still
+# compiles and passes in slim views.
+@cfg(not(feature = "matrix"))
+function main()
+    test_suite("Matrix Tests (skipped without matrix feature)")
+    let r = runner_new()
     let failed = runner_summary(r)
     if failed > 0
         exit(1)
