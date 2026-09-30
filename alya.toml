@@ -1,6 +1,6 @@
 [package]
 name = "math"
-version = "0.3.0"
+version = "0.4.0"
 alya-version = "0.0.19"
 entry = "src/lib.alya"
 description = "Comprehensive mathematics for Alya (big integers, rationals, number theory, primes, combinatorics, complex numbers, matrices, polynomials)"
