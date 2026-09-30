@@ -12,6 +12,19 @@ keywords = ["alya", "alya-lang", "package", "math", "bigint", "rational", "numbe
 
 [dependencies]
 
+# [lint]
+# disabled_rules = []
+# exclude = []
+
+# [fmt]
+# exclude = []
+
+# [test]
+# exclude = []
+
+# [bench]
+# exclude = []
+
 [features]
 default = ["bigint", "numtheory", "primes", "combin", "rational", "complex", "matrix", "poly"]
 bigint = []
@@ -28,16 +41,3 @@ poly = []
 # c-flags = ["-O2"]
 # c-include-dirs = ["c"]
 # links = "math"
-
-# [lint]
-# disabled_rules = []
-# exclude = []
-
-# [fmt]
-# exclude = []
-
-# [test]
-# exclude = []
-
-# [bench]
-# exclude = []
