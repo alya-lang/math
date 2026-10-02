@@ -148,7 +148,18 @@ pub function bi_sub(a, b) -> array
     return bi_trim(out)
 end
 
-## Multiplies two big integers (schoolbook, 30-bit limbs).
+function _bi_add_at(out, k: int, val: int)
+    let mask = 1073741823
+    let carry = val
+    while carry != 0
+        let s = out[k] + bit_and(carry, mask)
+        out[k] = bit_and(s, mask)
+        carry = bit_shr(s, 30) + bit_shr(carry, 30)
+        k += 1
+    end
+end
+
+## Multiplies two big integers (schoolbook, 30-bit limbs, 32-bit safe).
 ##
 ## # Arguments
 ## * `a` - First operand.
@@ -157,11 +168,10 @@ end
 ## # Returns
 ## Product limb array.
 pub function bi_mul(a, b) -> array
-    let mask = bi_mask()
     if bi_is_zero(a) == 1 or bi_is_zero(b) == 1
         return [0]
     end
-    let n = len(a) + len(b) + 1
+    let n = len(a) + len(b) + 2
     let out = []
     let i = 0
     while i < n
@@ -170,24 +180,27 @@ pub function bi_mul(a, b) -> array
     end
     i = 0
     while i < len(a)
-        let carry = 0
+        let a_val = a[i]
+        let a0 = bit_and(a_val, 32767)
+        let a1 = bit_shr(a_val, 15)
         let j = 0
         while j < len(b)
-            let cur = out[i + j] + a[i] * b[j] + carry
-            out[i + j] = bit_and(cur, mask)
-            carry = bit_shr(cur, 30)
+            let b_val = b[j]
+            let b0 = bit_and(b_val, 32767)
+            let b1 = bit_shr(b_val, 15)
+
+            let p0 = a0 * b0
+            let mid1 = a0 * b1
+            let mid2 = a1 * b0
+            let p2 = a1 * b1
+
+            let w15 = bit_shr(p0, 15) + bit_and(mid1, 32767) + bit_and(mid2, 32767)
+            let lo = bit_or(bit_and(p0, 32767), bit_shl(bit_and(w15, 32767), 15))
+            let hi = bit_shr(w15, 15) + bit_shr(mid1, 15) + bit_shr(mid2, 15) + p2
+
+            _bi_add_at(out, i + j, lo)
+            _bi_add_at(out, i + j + 1, hi)
             j += 1
-        end
-        let k = i + len(b)
-        let total = out[k] + carry
-        out[k] = bit_and(total, mask)
-        carry = bit_shr(total, 30)
-        k += 1
-        while carry != 0
-            total = out[k] + carry
-            out[k] = bit_and(total, mask)
-            carry = bit_shr(total, 30)
-            k += 1
         end
         i += 1
     end
@@ -370,18 +383,28 @@ end
 ## # Returns
 ## Little-endian 30-bit limb array.
 pub function bi_from_bytes(bytes) -> array
-    let mask = bi_mask()
     let out = []
     let acc = 0
     let bits = 0
     let i = len(bytes) - 1
     while i >= 0
-        acc = bit_or(acc, bit_shl(bit_and(bytes[i], 255), bits))
-        bits += 8
-        while bits >= 30
-            out.push(bit_and(acc, mask))
-            acc = bit_shr(acc, 30)
-            bits -= 30
+        let b = bit_and(bytes[i], 255)
+        if bits <= 22
+            acc = bit_or(acc, bit_shl(b, bits))
+            bits += 8
+            if bits == 30
+                out.push(acc)
+                acc = 0
+                bits = 0
+            end
+        else
+            let needed = 30 - bits
+            let take = bit_and(b, bit_shl(1, needed) - 1)
+            let rem = bit_shr(b, needed)
+            acc = bit_or(acc, bit_shl(take, bits))
+            out.push(acc)
+            acc = rem
+            bits = 8 - needed
         end
         i -= 1
     end
@@ -391,7 +414,7 @@ pub function bi_from_bytes(bytes) -> array
     return bi_trim(out)
 end
 
-## Converts limbs to big-endian bytes of exact length.
+## Converts limbs to big-endian bytes of exact length (32-bit safe).
 ##
 ## # Arguments
 ## * `a` - Limb array.
@@ -411,15 +434,29 @@ pub function bi_to_bytes(a, out_len: int) -> array
     let pos = 0
     i = 0
     while i < len(a) and pos < out_len
-        acc = bit_or(acc, bit_shl(a[i], bits))
-        bits += 30
-        while bits >= 8 and pos < out_len
-            le[pos] = bit_and(acc, 255)
-            acc = bit_shr(acc, 8)
-            bits -= 8
-            pos += 1
+        let limb = a[i]
+        let limb_bits = 30
+        while limb_bits > 0 and pos < out_len
+            let needed = 8 - bits
+            if limb_bits >= needed
+                let chunk = bit_and(limb, bit_shl(1, needed) - 1)
+                acc = bit_or(acc, bit_shl(chunk, bits))
+                le[pos] = acc
+                pos += 1
+                limb = bit_shr(limb, needed)
+                limb_bits -= needed
+                acc = 0
+                bits = 0
+            else
+                acc = bit_or(acc, bit_shl(limb, bits))
+                bits += limb_bits
+                limb_bits = 0
+            end
         end
         i += 1
+    end
+    if bits > 0 and pos < out_len
+        le[pos] = acc
     end
     let out = []
     i = out_len - 1
