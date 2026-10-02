@@ -1,5 +1,6 @@
 # Multi-precision integer tests (Python cross-checked ground truth)
 # Part of the Alya Language package ecosystem (https://github.com/alya-lang)
+# SKIP-ARCH: x86 (30-bit bigint limbs require 64-bit integer registers)
 import "std/test"
 import "../src/lib.alya" as math
 

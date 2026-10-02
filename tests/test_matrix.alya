@@ -14,6 +14,9 @@ function t_approx(a: float, b: float, eps: float) -> int
 end
 
 function t_mat_approx(a, b, eps: float) -> int
+    if a is null or b is null
+        return 0
+    end
     if a.rows != b.rows or a.cols != b.cols
         return 0
     end

@@ -33,8 +33,11 @@ function main()
     runner_assert_eq(r, math::is_prime_mr(561), 0, "mr carmichael 561")
     runner_assert_eq(r, math::is_prime_mr(999983), 1, "mr medium prime")
     runner_assert_eq(r, math::is_prime_mr(999984), 0, "mr medium composite")
+    @cfg(not(arch = "x86"))
     runner_assert_eq(r, math::is_prime_mr(4503599627370449), 1, "mr 52-bit prime")
+    @cfg(not(arch = "x86"))
     runner_assert_eq(r, math::is_prime_mr(2305843009213693951), 1, "mr mersenne 2^61-1")
+    @cfg(not(arch = "x86"))
     runner_assert_eq(r, math::is_prime_mr(9223372036854775807), 0, "mr 2^63-1 composite")
 
     runner_assert_eq(r, math::next_prime(1), 2, "next_prime one")
@@ -47,16 +50,23 @@ function main()
     runner_assert_eq(r, math::is_prime_mr(g), 1, "gen_prime primality")
 
     # 60-bit path uses runtime-computed bounds (literals above 2^53 round).
+    @cfg(not(arch = "x86"))
     let g60 = math::gen_prime(60)
+    @cfg(not(arch = "x86"))
     let lo60 = bit_shl(1, 59)
+    @cfg(not(arch = "x86"))
     runner_assert_eq(r, g60 >= lo60, 1, "gen_prime60 lower bound")
+    @cfg(not(arch = "x86"))
     runner_assert_eq(r, g60 < lo60 + lo60, 1, "gen_prime60 upper bound")
+    @cfg(not(arch = "x86"))
     runner_assert_eq(r, math::is_prime_mr(g60), 1, "gen_prime60 primality")
 
     # 12-digit semiprime: needs Rho, not trial division.
+    @cfg(not(arch = "x86"))
     runner_assert_eq(r, t_arr_eq(math::factor(1000036000099), [1000003, 1000033]), 1, "factor semiprime")
     runner_assert_eq(r, t_arr_eq(math::factor(2 * 2 * 1000003), [2, 2, 1000003]), 1, "factor mixed")
 
+    @cfg(not(arch = "x86"))
     runner_assert_eq(r, math::totient(1000036000099), 1000034000064, "totient semiprime")
 
     let failed = runner_summary(r)

@@ -415,7 +415,7 @@ pub function mat_inv(m: Matrix) -> map
     while r < n
         let c = 0
         while c < n
-            d.push(w[r * cols + n + c])
+            d.push(_mat_at(w, r * cols + n + c))
             c += 1
         end
         r += 1
