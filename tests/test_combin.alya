@@ -32,7 +32,6 @@ function main()
     runner_assert_eq(r, math::ncr(10, 0), 1, "ncr zero")
     runner_assert_eq(r, math::ncr(10, 10), 1, "ncr full")
     runner_assert_eq(r, math::ncr(10, 11), 0, "ncr overdraw")
-    @cfg(not(arch = "x86"))
     runner_assert_eq(r, math::ncr(50, 25), 126410606437752, "ncr central 50")
 
     runner_assert_eq(r, math::fib(0), 0, "fib 0")
@@ -43,7 +42,6 @@ function main()
     runner_assert_eq(r, t_limbs_to_int(math::fib_big(92)), math::fib(92), "fib 92")
 
     runner_assert_eq(r, t_limbs_to_int(math::fact_big(20)), 2432902008176640000, "fact_big 20")
-    @cfg(not(arch = "x86"))
     runner_assert_eq(r, t_limbs_to_int(math::ncr_big(50, 25)), 126410606437752, "ncr_big 50,25")
 
     # Pascal identity on C(100,50) without closed form.
