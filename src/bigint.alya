@@ -18,7 +18,7 @@ end
 ##
 ## # Returns
 ## Normalized limb array.
-pub function bi_trim(a) -> array
+pub function bi_trim(a: int[]) -> array
     let n = len(a)
     while n > 1 and a[n - 1] == 0
         n -= 1
