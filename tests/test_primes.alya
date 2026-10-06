@@ -4,16 +4,16 @@ import "../src/lib.alya" as math
 
 function t_arr_eq(a, b) -> int
     if len(a) != len(b)
-        return 0
+        return false
     end
     let i = 0
     while i < len(a)
         if a[i] != b[i]
-            return 0
+            return false
         end
         i += 1
     end
-    return 1
+    return true
 end
 
 @cfg(feature = "primes")
@@ -21,40 +21,40 @@ function main()
     test_suite("Prime Tests")
     let r = runner_new()
 
-    runner_assert_eq(r, t_arr_eq(math::sieve(1), []), 1, "sieve below two")
-    runner_assert_eq(r, t_arr_eq(math::sieve(2), [2]), 1, "sieve two")
-    runner_assert_eq(r, t_arr_eq(math::sieve(30), [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]), 1, "sieve thirty")
+    runner_assert_eq(r, t_arr_eq(math::sieve(1), []), true, "sieve below two")
+    runner_assert_eq(r, t_arr_eq(math::sieve(2), [2]), true, "sieve two")
+    runner_assert_eq(r, t_arr_eq(math::sieve(30), [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]), true, "sieve thirty")
 
-    runner_assert_eq(r, math::is_prime_mr(0), 0, "mr zero")
-    runner_assert_eq(r, math::is_prime_mr(1), 0, "mr one")
-    runner_assert_eq(r, math::is_prime_mr(2), 1, "mr two")
-    runner_assert_eq(r, math::is_prime_mr(97), 1, "mr small prime")
-    runner_assert_eq(r, math::is_prime_mr(100), 0, "mr small composite")
-    runner_assert_eq(r, math::is_prime_mr(561), 0, "mr carmichael 561")
-    runner_assert_eq(r, math::is_prime_mr(999983), 1, "mr medium prime")
-    runner_assert_eq(r, math::is_prime_mr(4503599627370449), 1, "mr 52-bit prime")
-    runner_assert_eq(r, math::is_prime_mr(2305843009213693951), 1, "mr mersenne 2^61-1")
-    runner_assert_eq(r, math::is_prime_mr(9223372036854775807), 0, "mr 2^63-1 composite")
+    runner_assert_eq(r, math::is_prime_mr(0), false, "mr zero")
+    runner_assert_eq(r, math::is_prime_mr(1), false, "mr one")
+    runner_assert_eq(r, math::is_prime_mr(2), true, "mr two")
+    runner_assert_eq(r, math::is_prime_mr(97), true, "mr small prime")
+    runner_assert_eq(r, math::is_prime_mr(100), false, "mr small composite")
+    runner_assert_eq(r, math::is_prime_mr(561), false, "mr carmichael 561")
+    runner_assert_eq(r, math::is_prime_mr(999983), true, "mr medium prime")
+    runner_assert_eq(r, math::is_prime_mr(4503599627370449), true, "mr 52-bit prime")
+    runner_assert_eq(r, math::is_prime_mr(2305843009213693951), true, "mr mersenne 2^61-1")
+    runner_assert_eq(r, math::is_prime_mr(9223372036854775807), false, "mr 2^63-1 composite")
 
     runner_assert_eq(r, math::next_prime(1), 2, "next_prime one")
     runner_assert_eq(r, math::next_prime(14), 17, "next_prime fourteen")
     runner_assert_eq(r, math::next_prime(97), 97, "next_prime prime input")
 
     let g = math::gen_prime(16)
-    runner_assert_eq(r, g >= 32768, 1, "gen_prime lower bound")
-    runner_assert_eq(r, g < 65536, 1, "gen_prime upper bound")
-    runner_assert_eq(r, math::is_prime_mr(g), 1, "gen_prime primality")
+    runner_assert_eq(r, g >= 32768, true, "gen_prime lower bound")
+    runner_assert_eq(r, g < 65536, true, "gen_prime upper bound")
+    runner_assert_eq(r, math::is_prime_mr(g), true, "gen_prime primality")
 
     # 60-bit path uses runtime-computed bounds (literals above 2^53 round).
     let g60 = math::gen_prime(60)
     let lo60 = bit_shl(1, 59)
-    runner_assert_eq(r, g60 >= lo60, 1, "gen_prime60 lower bound")
-    runner_assert_eq(r, g60 < lo60 + lo60, 1, "gen_prime60 upper bound")
-    runner_assert_eq(r, math::is_prime_mr(g60), 1, "gen_prime60 primality")
+    runner_assert_eq(r, g60 >= lo60, true, "gen_prime60 lower bound")
+    runner_assert_eq(r, g60 < lo60 + lo60, true, "gen_prime60 upper bound")
+    runner_assert_eq(r, math::is_prime_mr(g60), true, "gen_prime60 primality")
 
     # 12-digit semiprime: needs Rho, not trial division.
-    runner_assert_eq(r, t_arr_eq(math::factor(1000036000099), [1000003, 1000033]), 1, "factor semiprime")
-    runner_assert_eq(r, t_arr_eq(math::factor(2 * 2 * 1000003), [2, 2, 1000003]), 1, "factor mixed")
+    runner_assert_eq(r, t_arr_eq(math::factor(1000036000099), [1000003, 1000033]), true, "factor semiprime")
+    runner_assert_eq(r, t_arr_eq(math::factor(2 * 2 * 1000003), [2, 2, 1000003]), true, "factor mixed")
 
     runner_assert_eq(r, math::totient(1000036000099), 1000034000064, "totient semiprime")
 

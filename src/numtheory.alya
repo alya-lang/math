@@ -205,12 +205,12 @@ end
 ## `1` for `1, 2, 4, ...`, else `0`.
 pub function is_pow2(n: int) -> int
     if n <= 0
-        return 0
+        return false
     end
     if bit_and(n, n - 1) == 0
-        return 1
+        return true
     end
-    return 0
+    return false
 end
 
 ## Smallest power of two at or above `n` (`1` for `n <= 1`).
@@ -260,7 +260,7 @@ end
 ## ### Returns
 ## Map with `ok` (1/0), least non-negative `x`, and combined `m`.
 pub function crt(a1: int, m1: int, a2: int, m2: int) -> map
-    let fail = { "ok": 0, "x": 0, "m": 0 }
+    let fail = { "ok": false, "x": 0, "m": 0 }
     if m1 <= 0 or m2 <= 0
         throw "crt needs positive moduli"
     end
@@ -286,5 +286,5 @@ pub function crt(a1: int, m1: int, a2: int, m2: int) -> map
     else
         x = n1 + step
     end
-    return { "ok": 1, "x": x, "m": lcm }
+    return { "ok": true, "x": x, "m": lcm }
 end

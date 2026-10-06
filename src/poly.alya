@@ -10,25 +10,25 @@ import "./rational.alya"
 
 ## Zero coefficient constant.
 function _pq_zero() -> Rat
-    return Rat { neg: 0, num: [0], den: [1] }
+    return Rat { neg: false, num: [0], den: [1] }
 end
 
 ## Tests whether every coefficient is zero (empty counts as zero).
 function _pq_is_zero(p) -> int
     let i = 0
     while i < len(p)
-        if rat_is_zero(p[i]) == 0
-            return 0
+        if rat_is_zero(p[i]) == false
+            return false
         end
         i += 1
     end
-    return 1
+    return true
 end
 
 ## Trims leading zero coefficients (keeps at least one).
 pub function pq_trim(p) -> array
     let n = len(p)
-    while n > 1 and rat_is_zero(p[n - 1]) == 1
+    while n > 1 and rat_is_zero(p[n - 1]) == true
         n -= 1
     end
     let out = []
@@ -46,7 +46,7 @@ end
 ## Degree (`-1` for the zero polynomial).
 pub function pq_deg(p) -> int
     let t = pq_trim(p)
-    if _pq_is_zero(t) == 1
+    if _pq_is_zero(t) == true
         return -1
     end
     return len(t) - 1
@@ -103,7 +103,7 @@ end
 
 ## Multiplies two polynomials (convolution).
 pub function pq_mul(a, b) -> array
-    if _pq_is_zero(a) == 1 or _pq_is_zero(b) == 1
+    if _pq_is_zero(a) == true or _pq_is_zero(b) == true
         return [_pq_zero()]
     end
     let out = []
@@ -156,7 +156,7 @@ end
 pub function pq_divmod(n, d) -> map
     let fail = { "q": [_pq_zero()], "r": pq_trim(n), "error": "division by zero polynomial" }
     let dd = pq_trim(d)
-    if _pq_is_zero(dd) == 1
+    if _pq_is_zero(dd) == true
         return fail
     end
     let nn = pq_trim(n)
@@ -185,7 +185,7 @@ end
 ## Divides every coefficient by the leading one (monic form).
 function _pq_monic(p) -> array
     let t = pq_trim(p)
-    if _pq_is_zero(t) == 1
+    if _pq_is_zero(t) == true
         return t
     end
     let lc = t[len(t) - 1]
@@ -202,7 +202,7 @@ end
 pub function pq_gcd(a, b) -> array
     let x = pq_trim(a)
     let y = pq_trim(b)
-    while _pq_is_zero(y) == 0
+    while _pq_is_zero(y) == false
         let r = pq_divmod(x, y)["r"]
         x = y
         y = r
@@ -213,7 +213,7 @@ end
 ## Renders a polynomial (`"x^2 - 1"`, `"2x + 3"`, `"0"`).
 pub function pq_to_string(p) -> string
     let t = pq_trim(p)
-    if _pq_is_zero(t) == 1
+    if _pq_is_zero(t) == true
         return "0"
     end
     let one = rat_from_int(1)
@@ -221,10 +221,10 @@ pub function pq_to_string(p) -> string
     let i = len(t) - 1
     while i >= 0
         let c = t[i]
-        if rat_is_zero(c) == 0
+        if rat_is_zero(c) == false
             let mag = c
             let sign = "+"
-            if c.neg == 1
+            if c.neg == true
                 sign = "-"
                 mag = rat_neg(c)
             end

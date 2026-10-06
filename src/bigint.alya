@@ -73,11 +73,11 @@ pub function bi_is_zero(a) -> int
     let i = 0
     while i < len(a)
         if a[i] != 0
-            return 0
+            return false
         end
         i += 1
     end
-    return 1
+    return true
 end
 
 ## Adds two big integers.
@@ -128,7 +128,7 @@ end
 pub function bi_sub(a, b) -> array
     let base = bit_shl(1, 30)
     let out = []
-    let borrow = 0
+    let borrow = false
     let i = 0
     while i < len(a)
         let bv = 0
@@ -138,9 +138,9 @@ pub function bi_sub(a, b) -> array
         let d = a[i] - bv - borrow
         if d < 0
             d += base
-            borrow = 1
+            borrow = true
         else
-            borrow = 0
+            borrow = false
         end
         out.push(d)
         i += 1
@@ -158,7 +158,7 @@ end
 ## Product limb array.
 pub function bi_mul(a, b) -> array
     let mask = bi_mask()
-    if bi_is_zero(a) == 1 or bi_is_zero(b) == 1
+    if bi_is_zero(a) == true or bi_is_zero(b) == true
         return [0]
     end
     let n = len(a) + len(b) + 1
@@ -264,7 +264,7 @@ end
 ## # Returns
 ## Array `[quotient, remainder]`.
 pub function bi_divmod(a, b) -> array
-    if bi_is_zero(b) == 1
+    if bi_is_zero(b) == true
         throw "bigint division by zero"
     end
     if bi_cmp(a, b) < 0
@@ -441,7 +441,7 @@ end
 pub function bi_gcd(a, b) -> array
     let x = bi_trim(a)
     let y = bi_trim(b)
-    while bi_is_zero(y) == 0
+    while bi_is_zero(y) == false
         let r = bi_mod(x, y)
         x = y
         y = r
@@ -458,7 +458,7 @@ end
 ## # Returns
 ## LCM limb array.
 pub function bi_lcm(a, b) -> array
-    if bi_is_zero(a) == 1 or bi_is_zero(b) == 1
+    if bi_is_zero(a) == true or bi_is_zero(b) == true
         return [0]
     end
     return bi_divmod(bi_mul(a, b), bi_gcd(a, b))[0]

@@ -37,11 +37,11 @@ end
 
 ## Builds the reduced fraction `num/den` from signed magnitudes.
 function _rat_make(neg: int, num, den) -> Rat
-    if bi_is_zero(den) == 1
+    if bi_is_zero(den) == true
         throw "rational denominator is zero"
     end
-    if bi_is_zero(num) == 1
-        return Rat { neg: 0, num: [0], den: [1] }
+    if bi_is_zero(num) == true
+        return Rat { neg: false, num: [0], den: [1] }
     end
     let g = bi_gcd(num, den)
     return Rat {
@@ -63,18 +63,18 @@ pub function rat_from_int(num: int, den: int = 1) -> Rat
     if den == 0
         throw "rational denominator is zero"
     end
-    let neg = 0
+    let neg = false
     let n = num
     let d = den
     if n < 0
-        neg = 1
+        neg = true
         n = 0 - n
     end
     if d < 0
-        if neg == 1
-            neg = 0
+        if neg == true
+            neg = false
         else
-            neg = 1
+            neg = true
         end
         d = 0 - d
     end
@@ -89,26 +89,26 @@ end
 ## Returns 1 for `1/1` or `-1/1`, else 0.
 pub function rat_is_one(r: Rat) -> int
     if bi_cmp(r.num, [1]) != 0 or bi_cmp(r.den, [1]) != 0
-        return 0
+        return false
     end
-    return 1
+    return true
 end
 
 ## Negates a rational.
 pub function rat_neg(r: Rat) -> Rat
-    if rat_is_zero(r) == 1
+    if rat_is_zero(r) == true
         return r
     end
-    let neg = 1
-    if r.neg == 1
-        neg = 0
+    let neg = true
+    if r.neg == true
+        neg = false
     end
     return Rat { neg: neg, num: r.num, den: r.den }
 end
 
 ## Inverts a rational (`0` throws).
 pub function rat_inv(r: Rat) -> Rat
-    if rat_is_zero(r) == 1
+    if rat_is_zero(r) == true
         throw "rational division by zero"
     end
     return _rat_make(r.neg, r.den, r.num)
@@ -118,13 +118,13 @@ end
 pub function rat_add(a: Rat, b: Rat) -> Rat
     let n = bi_add(bi_mul(a.num, b.den), bi_mul(b.num, a.den))
     let d = bi_mul(a.den, b.den)
-    let neg = 0
+    let neg = false
     if a.neg != b.neg
         let left = bi_mul(a.num, b.den)
         let right = bi_mul(b.num, a.den)
         let c = bi_cmp(left, right)
         if c == 0
-            return Rat { neg: 0, num: [0], den: [1] }
+            return Rat { neg: false, num: [0], den: [1] }
         end
         if c < 0
             n = bi_sub(right, left)
@@ -146,9 +146,9 @@ end
 
 ## Multiplies two rationals.
 pub function rat_mul(a: Rat, b: Rat) -> Rat
-    let neg = 0
+    let neg = false
     if a.neg != b.neg
-        neg = 1
+        neg = true
     end
     return _rat_make(neg, bi_mul(a.num, b.num), bi_mul(a.den, b.den))
 end
@@ -161,16 +161,16 @@ end
 ## Compares two rationals (-1, 0, 1).
 pub function rat_cmp(a: Rat, b: Rat) -> int
     if a.neg != b.neg
-        if rat_is_zero(a) == 1 and rat_is_zero(b) == 1
+        if rat_is_zero(a) == true and rat_is_zero(b) == true
             return 0
         end
-        if a.neg == 1
+        if a.neg == true
             return -1
         end
         return 1
     end
     let c = bi_cmp(bi_mul(a.num, b.den), bi_mul(b.num, a.den))
-    if a.neg == 1
+    if a.neg == true
         return 0 - c
     end
     return c
@@ -190,7 +190,7 @@ end
 ## Approximates a rational as float.
 pub function rat_to_float(r: Rat) -> float
     let f = _rat_to_float(r.num) / _rat_to_float(r.den)
-    if r.neg == 1
+    if r.neg == true
         return 0.0 - f
     end
     return f
@@ -198,13 +198,13 @@ end
 
 ## Renders magnitude limbs as an exact decimal string.
 function _rat_limbs_to_dec(a) -> string
-    if bi_is_zero(a) == 1
+    if bi_is_zero(a) == true
         return "0"
     end
     let base = [1000000000]
     let parts = []
     let x = bi_trim(a)
-    while bi_is_zero(x) == 0
+    while bi_is_zero(x) == false
         let qr = bi_divmod(x, base)
         let chunk = 0
         let place = 1
@@ -234,7 +234,7 @@ end
 ## Renders a rational (`"3/4"`, `"-2"`, `"0"`).
 pub function rat_to_string(r: Rat) -> string
     let s = ""
-    if r.neg == 1
+    if r.neg == true
         s = "-"
     end
     s = s + _rat_limbs_to_dec(r.num)

@@ -22,17 +22,17 @@ pub function sieve(n: int) -> array
     let is_p = []
     let i = 0
     while i <= n
-        is_p.push(1)
+        is_p.push(true)
         i += 1
     end
-    is_p[0] = 0
-    is_p[1] = 0
+    is_p[0] = false
+    is_p[1] = false
     let d = 2
     while d * d <= n
-        if is_p[d] == 1
+        if is_p[d] == true
             let m = d * d
             while m <= n
-                is_p[m] = 0
+                is_p[m] = false
                 m += d
             end
         end
@@ -40,7 +40,7 @@ pub function sieve(n: int) -> array
     end
     i = 2
     while i <= n
-        if is_p[i] == 1
+        if is_p[i] == true
             out.push(i)
         end
         i += 1
@@ -57,17 +57,17 @@ end
 function _mr_witness(n: int, a: int, d: int, s: int) -> int
     let x = powmod(a, d, n)
     if x == 1 or x == n - 1
-        return 1
+        return true
     end
     let r = 1
     while r < s
         x = mulmod(x, x, n)
         if x == n - 1
-            return 1
+            return true
         end
         r += 1
     end
-    return 0
+    return false
 end
 
 ## Deterministic Miller-Rabin primality test for the 64-bit domain.
@@ -83,16 +83,16 @@ end
 ## `1` when prime, `0` otherwise.
 pub function is_prime_mr(n: int) -> int
     if n < 2
-        return 0
+        return false
     end
     let small = _mr_small()
     let i = 0
     while i < len(small)
         if n == small[i]
-            return 1
+            return true
         end
         if n % small[i] == 0
-            return 0
+            return false
         end
         i += 1
     end
@@ -107,13 +107,13 @@ pub function is_prime_mr(n: int) -> int
     while i < len(bases)
         let a = bases[i] % n
         if a != 0
-            if _mr_witness(n, a, d, s) == 0
-                return 0
+            if _mr_witness(n, a, d, s) == false
+                return false
             end
         end
         i += 1
     end
-    return 1
+    return true
 end
 
 ## Smallest prime `>= n` (`2` for `n <= 2`).
@@ -131,7 +131,7 @@ pub function next_prime(n: int) -> int
     if c % 2 == 0
         c += 1
     end
-    while is_prime_mr(c) == 0
+    while is_prime_mr(c) == false
         c += 2
     end
     return c
@@ -162,7 +162,7 @@ pub function gen_prime(bits: int) -> int
         if c % 2 == 0
             c += 1
         end
-        if c < bit_shl(1, bits) and is_prime_mr(c) == 1
+        if c < bit_shl(1, bits) and is_prime_mr(c) == true
             return c
         end
         tries += 1
@@ -244,7 +244,7 @@ function _factor_rec(n: int, out)
     if rest == 1
         return
     end
-    if is_prime_mr(rest) == 1
+    if is_prime_mr(rest) == true
         out.push(rest)
         return
     end

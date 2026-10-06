@@ -6,16 +6,16 @@ import "../src/lib.alya" as math
 # Element-wise limb equality.
 function t_arr_eq(a, b) -> int
     if len(a) != len(b)
-        return 0
+        return false
     end
     let i = 0
     while i < len(a)
         if a[i] != b[i]
-            return 0
+            return false
         end
         i += 1
     end
-    return 1
+    return true
 end
 
 # Minimal hex helpers so the suite stays dependency-free (vectors are lowercase).
@@ -57,8 +57,8 @@ function main()
 
     runner_assert_eq(r, math::LIMB_BITS, 30, "limb width contract")
     runner_assert_eq(r, math::bi_mask(), 1073741823, "limb mask")
-    runner_assert_eq(r, t_arr_eq(math::bi_trim([1, 2, 0, 0]), [1, 2]), 1, "trim zeros")
-    runner_assert_eq(r, t_arr_eq(math::bi_trim([0, 0]), [0]), 1, "trim to one")
+    runner_assert_eq(r, t_arr_eq(math::bi_trim([1, 2, 0, 0]), [1, 2]), true, "trim zeros")
+    runner_assert_eq(r, t_arr_eq(math::bi_trim([0, 0]), [0]), true, "trim to one")
 
     let rt = math::bi_to_bytes(math::bi_from_bytes(t_hex_to_bytes("018ee90ff6c373e0ee4e3f0ad2")), 13)
     runner_assert_str_eq(r, t_bytes_to_hex(rt), "018ee90ff6c373e0ee4e3f0ad2", "bytes roundtrip")
@@ -68,8 +68,8 @@ function main()
     runner_assert_eq(r, math::bi_cmp(x, y), -1, "cmp less")
     runner_assert_eq(r, math::bi_cmp(y, x), 1, "cmp greater")
     runner_assert_eq(r, math::bi_cmp(x, x), 0, "cmp equal")
-    runner_assert_eq(r, math::bi_is_zero([0, 0]), 1, "is_zero true")
-    runner_assert_eq(r, math::bi_is_zero([0, 1]), 0, "is_zero false")
+    runner_assert_eq(r, math::bi_is_zero([0, 0]), true, "is_zero true")
+    runner_assert_eq(r, math::bi_is_zero([0, 1]), false, "is_zero false")
 
     let p = math::bi_from_bytes(t_hex_to_bytes("018ee90ff6c373e0ee4e3f0ad2"))
     let q = math::bi_from_bytes(t_hex_to_bytes("013f20d9c2fff89d38e1c70cb1"))

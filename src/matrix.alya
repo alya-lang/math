@@ -30,7 +30,7 @@ end
 ## ### Returns
 ## New `Matrix` (entry array is copied).
 pub function mat(rows: int, cols: int, data = null) -> Matrix
-    return _mat_build(rows, cols, data, 0)
+    return _mat_build(rows, cols, data, false)
 end
 
 ## Builds a matrix from float entries.
@@ -43,7 +43,7 @@ end
 ## ### Returns
 ## New `Matrix` (entry array is copied).
 pub function mat_f(rows: int, cols: int, data) -> Matrix
-    return _mat_build(rows, cols, data, 1)
+    return _mat_build(rows, cols, data, true)
 end
 
 ## Shared ingestion kernel (`is_float`: 1 reinterprets slots as float,
@@ -66,7 +66,7 @@ function _mat_build(rows: int, cols: int, data, is_float: int) -> Matrix
         end
         let i = 0
         while i < len(data)
-            if is_float == 1
+            if is_float == true
                 d.push(_mat_at(data, i))
             else
                 d.push(float(data[i]))
@@ -349,7 +349,7 @@ end
 ## ### Returns
 ## Map with `ok` (1/0) and `inv` (`Matrix` or null when singular).
 pub function mat_inv(m: Matrix) -> map
-    let fail = { "ok": 0, "inv": null }
+    let fail = { "ok": false, "inv": null }
     if m.rows != m.cols
         throw "inverse needs a square matrix"
     end
@@ -420,7 +420,7 @@ pub function mat_inv(m: Matrix) -> map
         end
         r += 1
     end
-    return { "ok": 1, "inv": Matrix { rows: n, cols: n, data: d } }
+    return { "ok": true, "inv": Matrix { rows: n, cols: n, data: d } }
 end
 
 ## Solves `A*x = b` via Gauss-Jordan (square `A`, int `b` of length `n`).
@@ -430,7 +430,7 @@ end
 ## ### Returns
 ## Map with `ok` (1/0) and `x` (solution array or null when singular).
 pub function mat_solve(a: Matrix, b) -> map
-    return _mat_solve_kernel(a, b, 0)
+    return _mat_solve_kernel(a, b, false)
 end
 
 ## Solves `A*x = b` via Gauss-Jordan (square `A`, float `b` of length `n`).
@@ -438,12 +438,12 @@ end
 ## ### Returns
 ## Map with `ok` (1/0) and `x` (solution array or null when singular).
 pub function mat_solve_f(a: Matrix, b) -> map
-    return _mat_solve_kernel(a, b, 1)
+    return _mat_solve_kernel(a, b, true)
 end
 
 ## Shared solve kernel (`is_float` selects the rhs read path, see `_mat_build`).
 function _mat_solve_kernel(a: Matrix, b, is_float: int) -> map
-    let fail = { "ok": 0, "x": null }
+    let fail = { "ok": false, "x": null }
     if a.rows != a.cols
         throw "solve needs a square matrix"
     end
@@ -459,7 +459,7 @@ function _mat_solve_kernel(a: Matrix, b, is_float: int) -> map
             w.push(_mat_at(a.data, r * n + c))
             c += 1
         end
-        if is_float == 1
+        if is_float == true
             w.push(_mat_at(b, r))
         else
             w.push(float(b[r]))
@@ -509,5 +509,5 @@ function _mat_solve_kernel(a: Matrix, b, is_float: int) -> map
         x.push(_mat_at(w, r * cols + n))
         r += 1
     end
-    return { "ok": 1, "x": x }
+    return { "ok": true, "x": x }
 end

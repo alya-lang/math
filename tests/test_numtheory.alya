@@ -5,16 +5,16 @@ import "../src/lib.alya" as math
 # Element-wise array equality (str() on arrays prints addresses).
 function arr_eq(a, b) -> int
     if len(a) != len(b)
-        return 0
+        return false
     end
     let i = 0
     while i < len(a)
         if a[i] != b[i]
-            return 0
+            return false
         end
         i += 1
     end
-    return 1
+    return true
 end
 
 @cfg(feature = "numtheory")
@@ -44,9 +44,9 @@ function main()
     runner_assert_eq(r, math::modinv(10, 17), 12, "modinv 10/17")
     runner_assert_eq(r, math::modinv(6, 9), -1, "modinv no inverse")
 
-    runner_assert_eq(r, arr_eq(math::factor(60), [2, 2, 3, 5]), 1, "factor 60")
-    runner_assert_eq(r, arr_eq(math::factor(999983), [999983]), 1, "factor prime")
-    runner_assert_eq(r, arr_eq(math::factor(1024), [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]), 1, "factor power of two")
+    runner_assert_eq(r, arr_eq(math::factor(60), [2, 2, 3, 5]), true, "factor 60")
+    runner_assert_eq(r, arr_eq(math::factor(999983), [999983]), true, "factor prime")
+    runner_assert_eq(r, arr_eq(math::factor(1024), [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]), true, "factor power of two")
 
     runner_assert_eq(r, math::totient(1), 1, "totient 1")
     runner_assert_eq(r, math::totient(9), 6, "totient 9")
@@ -62,33 +62,33 @@ function main()
     runner_assert_eq(r, math::popcount(45), 4, "popcount 45")
     runner_assert_eq(r, math::popcount(255), 8, "popcount 255")
 
-    runner_assert_eq(r, math::is_pow2(0), 0, "is_pow2 zero")
-    runner_assert_eq(r, math::is_pow2(1), 1, "is_pow2 one")
-    runner_assert_eq(r, math::is_pow2(64), 1, "is_pow2 64")
-    runner_assert_eq(r, math::is_pow2(100), 0, "is_pow2 100")
+    runner_assert_eq(r, math::is_pow2(0), false, "is_pow2 zero")
+    runner_assert_eq(r, math::is_pow2(1), true, "is_pow2 one")
+    runner_assert_eq(r, math::is_pow2(64), true, "is_pow2 64")
+    runner_assert_eq(r, math::is_pow2(100), false, "is_pow2 100")
 
     runner_assert_eq(r, math::next_pow2(0), 1, "next_pow2 zero")
     runner_assert_eq(r, math::next_pow2(5), 8, "next_pow2 five")
     runner_assert_eq(r, math::next_pow2(16), 16, "next_pow2 exact")
 
     let crt1 = math::crt(2, 3, 3, 5)
-    runner_assert_eq(r, crt1["ok"], 1, "crt coprime ok")
+    runner_assert_eq(r, crt1["ok"], true, "crt coprime ok")
     runner_assert_eq(r, crt1["x"], 8, "crt coprime x")
     runner_assert_eq(r, crt1["m"], 15, "crt coprime m")
     let crt2 = math::crt(2, 4, 6, 8)
-    runner_assert_eq(r, crt2["ok"], 1, "crt compatible ok")
+    runner_assert_eq(r, crt2["ok"], true, "crt compatible ok")
     runner_assert_eq(r, crt2["x"], 6, "crt compatible x")
     runner_assert_eq(r, crt2["m"], 8, "crt compatible m")
     let crt3 = math::crt(1, 2, 0, 4)
-    runner_assert_eq(r, crt3["ok"], 0, "crt incompatible")
+    runner_assert_eq(r, crt3["ok"], false, "crt incompatible")
 
     # bigint extensions
-    runner_assert_eq(r, arr_eq(math::bi_to_bytes(math::bi_gcd([48], [18]), 1), [6]), 1, "bi_gcd small")    let g1 = math::bi_from_bytes([1, 2, 3])
+    runner_assert_eq(r, arr_eq(math::bi_to_bytes(math::bi_gcd([48], [18]), 1), [6]), true, "bi_gcd small")    let g1 = math::bi_from_bytes([1, 2, 3])
     runner_assert_eq(r, math::bi_cmp(math::bi_gcd(g1, [0]), g1), 0, "bi_gcd zero")
-    runner_assert_eq(r, arr_eq(math::bi_to_bytes(math::bi_pow_int([7], 5), 2), [65, 167]), 1, "bi_pow_int 7^5")
-    runner_assert_eq(r, arr_eq(math::bi_pow_int([99], 0), [1]), 1, "bi_pow_int zero exp")
-    runner_assert_eq(r, arr_eq(math::bi_to_bytes(math::bi_lcm([6], [8]), 1), [24]), 1, "bi_lcm small")
-    runner_assert_eq(r, arr_eq(math::bi_lcm([0], [8]), [0]), 1, "bi_lcm zero")
+    runner_assert_eq(r, arr_eq(math::bi_to_bytes(math::bi_pow_int([7], 5), 2), [65, 167]), true, "bi_pow_int 7^5")
+    runner_assert_eq(r, arr_eq(math::bi_pow_int([99], 0), [1]), true, "bi_pow_int zero exp")
+    runner_assert_eq(r, arr_eq(math::bi_to_bytes(math::bi_lcm([6], [8]), 1), [24]), true, "bi_lcm small")
+    runner_assert_eq(r, arr_eq(math::bi_lcm([0], [8]), [0]), true, "bi_lcm zero")
 
     let failed = runner_summary(r)
     if failed > 0
