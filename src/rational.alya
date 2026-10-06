@@ -181,7 +181,7 @@ function _rat_to_float(a) -> float
     let f = 0.0
     let i = len(a) - 1
     while i >= 0
-        f = f * 1073741824.0 + float(a[i])
+        f *= 1073741824.0 + float(a[i])
         i -= 1
     end
     return f
@@ -225,7 +225,7 @@ function _rat_limbs_to_dec(a) -> string
         while len(c) < 9
             c = "0" + c
         end
-        s = s + c
+        s += c
         i -= 1
     end
     return s
@@ -237,9 +237,9 @@ pub function rat_to_string(r: Rat) -> string
     if r.neg == true
         s = "-"
     end
-    s = s + _rat_limbs_to_dec(r.num)
+    s += _rat_limbs_to_dec(r.num)
     if bi_cmp(r.den, [1]) != 0
-        s = s + "/" + _rat_limbs_to_dec(r.den)
+        s += "/" + _rat_limbs_to_dec(r.den)
     end
     return s
 end

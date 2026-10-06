@@ -81,7 +81,7 @@ end
 ##
 ## ### Returns
 ## `1` when prime, `0` otherwise.
-pub function is_prime_mr(n: int) -> int
+pub function is_prime_mr(n: int) -> bool
     if n < 2
         return false
     end
@@ -99,7 +99,7 @@ pub function is_prime_mr(n: int) -> int
     let d = n - 1
     let s = 0
     while d % 2 == 0
-        d = d / 2
+        d /= 2
         s += 1
     end
     let bases = [2, 325, 9375, 28178, 450775, 9780504, 1795265022]
@@ -237,7 +237,7 @@ function _factor_rec(n: int, out)
     while i < len(small)
         while rest % small[i] == 0
             out.push(small[i])
-            rest = rest / small[i]
+            rest /= small[i]
         end
         i += 1
     end
@@ -305,7 +305,7 @@ pub function totient(n: int) -> int
     while i < len(facs)
         if facs[i] != prev
             prev = facs[i]
-            result = result / prev * (prev - 1)
+            result /= prev * (prev - 1)
         end
         i += 1
     end

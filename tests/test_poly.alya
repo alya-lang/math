@@ -3,18 +3,18 @@ import "std/test"
 import "../src/lib.alya" as math
 
 # Compares coefficient arrays via exact decimal rendering.
-function t_poly_eq(a, b) -> int
+function t_poly_eq(a, b) -> bool
     if len(a) != len(b)
-        return 0
+        return false
     end
     let i = 0
     while i < len(a)
         if math::rat_to_string(a[i]) != math::rat_to_string(b[i])
-            return 0
+            return false
         end
         i += 1
     end
-    return 1
+    return true
 end
 
 @cfg(feature = "poly")

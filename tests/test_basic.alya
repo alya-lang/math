@@ -4,7 +4,7 @@ import "std/test"
 import "../src/lib.alya" as math
 
 # Element-wise limb equality.
-function t_arr_eq(a, b) -> int
+function t_arr_eq(a, b) -> bool
     if len(a) != len(b)
         return false
     end
@@ -44,7 +44,7 @@ function t_bytes_to_hex(bytes) -> str
     let res = ""
     let i = 0
     while i < len(bytes)
-        res = res + char_at(digits, bit_and(bit_shr(bytes[i], 4), 15)) + char_at(digits, bit_and(bytes[i], 15))
+        res += char_at(digits, bit_and(bit_shr(bytes[i], 4), 15)) + char_at(digits, bit_and(bytes[i], 15))
         i += 1
     end
     return res

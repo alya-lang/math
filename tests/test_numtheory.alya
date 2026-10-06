@@ -3,7 +3,7 @@ import "std/test"
 import "../src/lib.alya" as math
 
 # Element-wise array equality (str() on arrays prints addresses).
-function arr_eq(a, b) -> int
+function arr_eq(a, b) -> bool
     if len(a) != len(b)
         return false
     end
