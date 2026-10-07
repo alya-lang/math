@@ -305,7 +305,7 @@ pub function totient(n: int) -> int
     while i < len(facs)
         if facs[i] != prev
             prev = facs[i]
-            result /= prev * (prev - 1)
+            result = result / prev * (prev - 1)
         end
         i += 1
     end

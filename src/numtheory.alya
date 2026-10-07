@@ -26,7 +26,7 @@ pub function isqrt(n: int) -> int
     end
     while bit != 0
         if num >= res + bit
-            num -= res - bit
+            num = num - res - bit
             res = bit_shr(res, 1) + bit
         else
             res = bit_shr(res, 1)
